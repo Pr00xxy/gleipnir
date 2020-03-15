@@ -1,0 +1,19 @@
+upstream phpupstream {
+    server php:9000 fail_timeout=10s max_fails=5;
+}
+
+server {
+    server_name ${FQDN};
+    listen ${HTTPD_LISTEN_PORT} ssl http2;
+
+    set ${DOLLAR}MAGE_ROOT /var/www/html;
+    set ${DOLLAR}MAGE_MODE developer;
+    set ${DOLLAR}HTTPS_FORWARD on;
+    set ${DOLLAR}FPM_USER root;
+
+    NEEDLE_CRT
+    NEEDLE_KEY
+
+    include m2.conf;
+
+}

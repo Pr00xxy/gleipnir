@@ -1,0 +1,79 @@
+version: '3.7'
+
+services:
+
+  httpd:
+    image: nginx:latest
+    expose:
+      - "${HTTPD_LISTEN_PORT}"
+    ports:
+      - "${HTTPD_LISTEN_PORT}:${HTTPD_LISTEN_PORT}"
+    env_file:
+      - ./gleipnir/.env
+    volumes:
+      - ./gleipnir/httpd/nginx.conf:/etc/nginx/nginx.conf
+      - ./gleipnir/httpd/${PROJECT_NAME}.conf:/etc/nginx/conf.d/${PROJECT_NAME}.conf
+      - ./gleipnir/httpd/m2.conf:/etc/nginx/m2.conf
+      - ./gleipnir/ssl/${PROJECT_NAME}.key:/etc/nginx/${PROJECT_NAME}.key
+      - ./gleipnir/ssl/${PROJECT_NAME}.crt:/etc/nginx/${PROJECT_NAME}.crt
+      - .:/var/www/html
+    depends_on:
+      - php
+      - database
+    networks:
+      - front
+      - back
+
+  php:
+    build:
+      context: ./gleipnir/php/${PHP_VERSION}
+      dockerfile: Dockerfile
+    ports:
+      - "9000"
+    env_file:
+      - ./gleipnir/.env
+    volumes:
+      - ./gleipnir/php/${PHP_VERSION}/conf/php.ini:/usr/local/etc/php/php.ini
+      - ./gleipnir/php/${PHP_VERSION}/conf/php-fpm.conf:/usr/local/etc/php-fpm.conf
+      - ./gleipnir/php/${PHP_VERSION}/conf/www.conf:/usr/local/etc/www.conf
+      - .:/var/www/html
+    networks:
+      - back
+
+  database:
+    image: mysql:5.7
+    ports:
+      - "${DB_LISTEN_PORT}:${DB_LISTEN_PORT}"
+    env_file:
+      - ./gleipnir/.env
+    expose:
+        - "${DB_LISTEN_PORT}"
+    volumes:
+      - database-persistance:/var/lib/mysql
+    networks:
+      - back
+
+  redis:
+    image: redis:latest
+    networks:
+      - back
+
+  rabbitmq:
+    image: rabbitmq:${RABBITMQ_VERSION}
+    env_file:
+      - ./gleipnir/.env
+
+  rabbitmq-management:
+    image: rabbitmq:3-management
+    env_file:
+      - ./gleipnir/.env
+
+volumes:
+    database-persistance:
+
+networks:
+  front:
+    driver: bridge
+  back:
+    driver: bridge
+

@@ -1,0 +1,132 @@
+#!/usr/bin/env sh
+
+PROJECTPATH=$(pwd)
+
+SCRIPTNAME=$0
+
+ENV_FILE="$PROJECTPATH/gleipnir/.env"
+COMPOSE_FILE="$PROJECTPATH/docker-compose.yml"
+
+if [ ! -f $ENV_FILE ]; then
+  echo >&2 "The file that holds the environment variables was not found at $ENV_FILE"
+  exit 1
+fi
+
+if [ ! -f $COMPOSE_FILE ]; then
+  echo >&2 "The docker-compose file was not found at $COMPOSE_FILE"
+  exit 1
+fi
+
+set -a
+
+source $ENV_FILE
+
+hash docker 2>/dev/null || { echo >&2 "$SCRIPTNAME requires \"docker\""; exit 1; }
+
+hash docker-compose 2>/dev/null || { echo >&2 "$SCRIPTNAME requires \"docker-compose\""; exit 1; }
+
+function usage() {
+  echo "Usage:\n\n  $SCRIPTNAME <action> <arguments...> \n"
+  echo "Actions:\n"
+  printf "  %-15s%-30s\n" "install" "Install Magento"
+  printf "  %-15s%-30s\n" "exec" "Execute bin/magento inside docker"
+  echo ""
+  printf "  %-15s%-30s\n" "start" "Start the server and all of its components"
+  printf "  %-15s%-30s\n" "restart" "Restart the server"
+  printf "  %-15s%-30s\n" "stop" "Stop the server"
+  printf "  %-15s%-30s\n" "status" "Get the current server status"
+}
+
+function run_startup_scripts() {
+
+    for component in ./gleipnir/*; do
+      if [ -f $component/startup.sh ]; then
+        source $component/startup.sh
+        sleep 1
+      fi
+    done
+}
+
+function start() {
+  run_startup_scripts
+  docker-compose -f $COMPOSE_FILE up -d --force-recreate
+  executeInDocker app:config:import
+  executeInDocker
+}
+
+function stop() {
+  if [ $(isRunning) ]; then
+    docker-compose -f $COMPOSE_FILE down
+  fi
+}
+
+function isRunning() {
+  dockerStatusOutput=$(docker-compose -f $COMPOSE_FILE ps -q)
+  outputSize=${#dockerStatusOutput}
+  if [ "$outputSize" -gt 0 ]; then
+    echo true
+  else
+    echo false
+  fi
+}
+
+function status() {
+  if [ ! $(isRunning) ]; then
+    echo >&2 "Not running";
+    exit 1;
+  fi
+  docker-compose -f $COMPOSE_FILE ps -q | xargs docker inspect --format='{{ .Name }} {{ .State.Status }}' | sed 's:^/::g' | xargs printf "%-45s%-30s\n"
+}
+
+function restart() {
+  stop
+  start
+}
+
+function executeInDocker() {
+  if [ ! $(isRunning) ]; then
+    echo >&2 "Docker is not running. Please start the containers first.";
+    exit 1;
+  fi
+  docker-compose exec php bash -c "bin/magento $*"
+}
+
+function importDb()
+{
+  docker-compose exec -T database mysql -uroot -p${MYSQL_ROOT_PASSWORD} ${MYSQL_DATABASE} < $1
+}
+
+case "$1" in
+    exec)
+    shift 1
+    executeInDocker $*
+    ;;
+
+    start)
+    start
+    ;;
+
+    restart)
+    restart
+    ;;
+
+    stop)
+    stop
+    ;;
+
+    status)
+    status
+    ;;
+
+    importdb)
+    shift 1
+    importDb $*
+    ;;
+
+    *)
+    usage
+    ;;
+esac
+
+exit 0
+
