@@ -20,9 +20,6 @@ services:
     depends_on:
       - php
       - database
-    networks:
-      - front
-      - back
 
   php:
     build:
@@ -37,26 +34,20 @@ services:
       - ./gleipnir/php/${PHP_VERSION}/conf/php-fpm.conf:/usr/local/etc/php-fpm.conf
       - ./gleipnir/php/${PHP_VERSION}/conf/www.conf:/usr/local/etc/www.conf
       - .:/var/www/html
-    networks:
-      - back
 
   database:
-    image: mysql:5.7
+    image: mysql:${MYSQL_VERSION}
     ports:
       - "${DB_LISTEN_PORT}:${DB_LISTEN_PORT}"
     env_file:
       - ./gleipnir/.env
     expose:
-        - "${DB_LISTEN_PORT}"
+      - '3306'
     volumes:
-      - database-persistance:/var/lib/mysql
-    networks:
-      - back
+      - db-persistance:/var/lib/mysql
 
   redis:
     image: redis:latest
-    networks:
-      - back
 
   rabbitmq:
     image: rabbitmq:${RABBITMQ_VERSION}
@@ -69,11 +60,5 @@ services:
       - ./gleipnir/.env
 
 volumes:
-    database-persistance:
-
-networks:
-  front:
-    driver: bridge
-  back:
-    driver: bridge
-
+    db-persistance:
+      name: ${PROJECT_NAME}-db-data

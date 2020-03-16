@@ -1,5 +1,9 @@
 #!/usr/bin/env sh
 
+# ln -s /Users/hampus/git/magento2_modules/Pr00xxy/gleipnir/components $(pwd)/gleipnir
+# ln -s /Users/hampus/git/magento2_modules/Pr00xxy/gleipnir/bin/console $(pwd)/bin/console
+# ln -s /Users/hampus/git/magento2_modules/Pr00xxy/gleipnir/docker-compose.yml $(pwd)/docker-compose.yml
+
 PROJECTPATH=$(pwd)
 
 SCRIPTNAME=$0
@@ -42,7 +46,7 @@ function run_startup_scripts() {
     for component in ./gleipnir/*; do
       if [ -f $component/startup.sh ]; then
         source $component/startup.sh
-        sleep 1
+        sleep 2
       fi
     done
 }
@@ -50,14 +54,16 @@ function run_startup_scripts() {
 function start() {
   run_startup_scripts
   docker-compose -f $COMPOSE_FILE up -d --force-recreate
-  executeInDocker app:config:import
-  executeInDocker
 }
 
 function stop() {
   if [ $(isRunning) ]; then
     docker-compose -f $COMPOSE_FILE down
   fi
+}
+
+function rm() {
+    docker-compose -f $COMPOSE_FILE rm -v
 }
 
 function isRunning() {
@@ -116,6 +122,10 @@ case "$1" in
 
     status)
     status
+    ;;
+
+    rm)
+    rm
     ;;
 
     importdb)
