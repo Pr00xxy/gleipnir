@@ -42,7 +42,7 @@ services:
     env_file:
       - ./gleipnir/.env
     expose:
-      - '3306'
+      - "${DB_LISTEN_PORT}"
     volumes:
       - db-persistance:/var/lib/mysql
 
