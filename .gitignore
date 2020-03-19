@@ -1,5 +1,4 @@
 .DS_Store
 *.crt
 *.key
-./components/dnsmasq/dnsmasq.conf
-./components/httpd/sites/*.conf
+components/httpd/sites/*.conf
