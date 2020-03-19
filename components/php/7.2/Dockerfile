@@ -5,23 +5,12 @@ ENV DEBIAN_FRONTEND noninteractive
 
 RUN apt-get update
 
+# php module build deps
 RUN \
   apt-get install -y \
   libcurl4-gnutls-dev \
   libxml2-dev \
-  libssl-dev
-
-RUN \
-    /usr/local/bin/docker-php-ext-install \
-    dom \
-    pcntl \
-    phar \
-    posix
-
-# Configure PHP
-# php module build deps
-RUN \
-  apt-get install -y \
+  libssl-dev \
   g++ \
   autoconf \
   libbz2-dev \
@@ -44,11 +33,14 @@ RUN \
   file \
   libssh2-1-dev \
   libjpeg-dev \
+  libbrotli-dev \
   git \
   curl \
   wget \
   librabbitmq-dev \
-  libzip-dev
+  libzip-dev \
+  libmagickwand-dev \
+  --no-install-recommends
 
 # http://devdocs.magento.com/guides/v2.0/install-gde/system-requirements.html
 RUN \
@@ -66,10 +58,10 @@ RUN \
     bcmath \
     json \
     opcache \
-    zip
-
-RUN apt-get update && apt-get install -y \
-        libmagickwand-dev --no-install-recommends
+    dom \
+    pcntl \
+    zip \
+    curl
 
 RUN pecl install imagick && docker-php-ext-enable imagick
 
@@ -80,7 +72,10 @@ RUN rm -rf /var/www/html/*
 RUN chown -R www-data:www-data /var/www/
 RUN chmod -R g+w /var/www/
 
-RUN docker-php-ext-configure gd --with-freetype-dir=/usr --with-jpeg-dir=/usr --with-png-dir=/usr \
+RUN docker-php-ext-configure gd \
+    --with-freetype-dir=/usr \
+    --with-jpeg-dir=/usr \
+    --with-png-dir=/usr \
     && docker-php-ext-install gd
 
 RUN curl -sS https://getcomposer.org/installer -o composer-setup.php
