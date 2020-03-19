@@ -1,11 +1,18 @@
 #!/usr/bin/env sh
 
 function create_tls() {
-  echo "create_tls"
+  echo "Generating SSL cert for $1"
   openssl req -newkey rsa:2048 -nodes \
-    -keyout ${PROJECTPATH}/gleipnir/ssl/${PROJECT_NAME}.key -x509 -days 365 \
-    -out ${PROJECTPATH}/gleipnir/ssl/${PROJECT_NAME}.crt \
-    -subj "/C=SE/ST=Stockholm/L=Stockholm/O=Company/OU=Development/CN=${FQDN}"
+    -keyout ${PROJECTPATH}/gleipnir/ssl/certificates/${1}.key -x509 -days 365 \
+    -out ${PROJECTPATH}/gleipnir/ssl/certificates/${1}.crt \
+    -subj "/C=SE/ST=Stockholm/L=Stockholm/O=Company/OU=Development/CN=${1}.test"
 }
 
-create_tls
+for config in ${MULTISITE[@]} ; do
+
+    IFS=':' read -r -a array <<< "$config"
+    domain=${array[0]}
+
+    create_tls $domain
+
+done

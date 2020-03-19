@@ -58,7 +58,6 @@ RUN \
     pdo_mysql \
     mysqli \
     mbstring \
-    mcrypt \
     hash \
     simplexml \
     xsl \
@@ -76,16 +75,6 @@ RUN pecl install imagick && docker-php-ext-enable imagick
 
 # Make sure the volume mount point is empty
 RUN rm -rf /var/www/html/*
-
-# Set www-data as owner for /var/www
-RUN chown -R www-data:www-data /var/www/
-RUN chmod -R g+w /var/www/
-
-# Create log folders
-RUN mkdir /var/log/php-fpm && \
-    touch /var/log/php-fpm/access.log && \
-    touch /var/log/php-fpm/error.log && \
-    chown -R www-data:www-data /var/log/php-fpm
 
 RUN docker-php-ext-configure gd --with-freetype-dir=/usr --with-jpeg-dir=/usr --with-png-dir=/usr \
     && docker-php-ext-install gd

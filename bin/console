@@ -1,11 +1,11 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
 # ln -s /Users/hampus/git/magento2_modules/Pr00xxy/gleipnir/components $(pwd)/gleipnir
 # ln -s /Users/hampus/git/magento2_modules/Pr00xxy/gleipnir/bin/console $(pwd)/bin/console
 # ln -s /Users/hampus/git/magento2_modules/Pr00xxy/gleipnir/docker-compose.yml $(pwd)/docker-compose.yml
 
 PROJECTPATH=$(pwd)
-
+USER="$(id -u):$(id -g)"
 SCRIPTNAME=$0
 
 ENV_FILE="$PROJECTPATH/gleipnir/.env"
@@ -32,7 +32,6 @@ hash docker-compose 2>/dev/null || { echo >&2 "$SCRIPTNAME requires \"docker-com
 function usage() {
   echo "Usage:\n\n  $SCRIPTNAME <action> <arguments...> \n"
   echo "Actions:\n"
-  printf "  %-15s%-30s\n" "install" "Install Magento"
   printf "  %-15s%-30s\n" "exec" "Execute bin/magento inside docker"
   echo ""
   printf "  %-15s%-30s\n" "start" "Start the server and all of its components"
@@ -51,18 +50,29 @@ function run_startup_scripts() {
     done
 }
 
+function run_shutdown_scripts() {
+
+    for component in ./gleipnir/*; do
+      if [ -f $component/shutdown.sh ]; then
+        source $component/shutdown.sh
+        sleep 2
+      fi
+    done
+}
+
 function start() {
   run_startup_scripts
-  docker-compose -f $COMPOSE_FILE up -d --force-recreate
+  docker-compose -f $COMPOSE_FILE up -d --force-recreate --build
 }
 
 function stop() {
   if [ $(isRunning) ]; then
-    docker-compose -f $COMPOSE_FILE down
+    run_shutdown_scripts
+    docker-compose -f $COMPOSE_FILE down --remove-orphans
   fi
 }
 
-function rm() {
+function remove() {
     docker-compose -f $COMPOSE_FILE rm -v
 }
 
@@ -124,8 +134,8 @@ case "$1" in
     status
     ;;
 
-    rm)
-    rm
+    remove)
+    remove
     ;;
 
     importdb)
@@ -139,4 +149,3 @@ case "$1" in
 esac
 
 exit 0
-

@@ -1,19 +1,18 @@
-upstream phpupstream {
-    server php:9000 fail_timeout=10s max_fails=5;
-}
 
 server {
-    server_name ${FQDN};
+    server_name NEEDLE_DOMAIN${TLD};
     listen ${HTTPD_LISTEN_PORT} ssl http2;
 
     set ${DOLLAR}MAGE_ROOT /var/www/html;
     set ${DOLLAR}MAGE_MODE developer;
+    set ${DOLLAR}MAGE_RUN_CODE NEEDLE_CODE;
+    set ${DOLLAR}MAGE_RUN_TYPE NEEDLE_SCOPE;
     set ${DOLLAR}HTTPS_FORWARD on;
     set ${DOLLAR}FPM_USER root;
 
     NEEDLE_CRT
     NEEDLE_KEY
 
-    include m2.conf;
+    include /etc/nginx/m2.conf;
 
 }
