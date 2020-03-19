@@ -1,0 +1,29 @@
+{
+  "name": "prooxxy/gleipnir",
+  "type": "magento2-component",
+  "version": "0.5.0",
+  "keywords": ["magento2", "docker"],
+  "licence": "MIT",
+  "authors": [
+    {
+      "name": "Hampus Westman",
+      "email": "hampus.westman@gmail.com"
+    }
+  ],
+  "extra": {
+    "map": [
+      [
+        "components",
+        "gleipnir"
+      ],
+      [
+        "bin/console",
+        "bin/console"
+      ],
+      [
+        "docker-compose.yml",
+        "docker-compose.yml"
+      ]
+    ]
+  }
+}

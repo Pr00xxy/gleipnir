@@ -1,9 +1,5 @@
 #!/usr/bin/env bash
 
-# ln -s /Users/hampus/git/magento2_modules/Pr00xxy/gleipnir/components $(pwd)/gleipnir
-# ln -s /Users/hampus/git/magento2_modules/Pr00xxy/gleipnir/bin/console $(pwd)/bin/console
-# ln -s /Users/hampus/git/magento2_modules/Pr00xxy/gleipnir/docker-compose.yml $(pwd)/docker-compose.yml
-
 PROJECTPATH=$(pwd)
 USER="$(id -u):$(id -g)"
 SCRIPTNAME=$0
