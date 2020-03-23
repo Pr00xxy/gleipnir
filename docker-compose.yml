@@ -49,17 +49,21 @@ services:
 
   redis:
     image: redis:latest
+    volumes:
+      - redis-persistance:/data
 
   rabbitmq:
-    image: rabbitmq:${RABBITMQ_VERSION}
+    image: rabbitmq:${RABBITMQ_VERSION}-management-alpine
+    hostname: ${PROJECT_NAME}-rabbitmq
     env_file:
       - ./gleipnir/.env
-
-  rabbitmq-management:
-    image: rabbitmq:3-management
-    env_file:
-      - ./gleipnir/.env
+    volumes:
+        - rabbitmq-persistance:/var/lib/rabbitmq
 
 volumes:
     db-persistance:
       name: ${PROJECT_NAME}-db-data
+    rabbitmq-persistance:
+      name: ${PROJECT_NAME}-rabbit-data
+    redis-persistance:
+      name: ${PROJECT_NAME}-redis-data
