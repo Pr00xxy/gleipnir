@@ -4,7 +4,8 @@ PROJECTPATH=$(pwd)
 USER="$(id -u):$(id -g)"
 SCRIPTNAME=$0
 
-ENV_FILE="$PROJECTPATH/gleipnir/.env"
+
+ENV_FILE="$PROJECTPATH/gleipnir/.env.gleipnir"
 COMPOSE_FILE="$PROJECTPATH/docker-compose.yml"
 
 if [ ! -f $ENV_FILE ]; then
@@ -20,6 +21,10 @@ fi
 set -a
 
 source $ENV_FILE
+
+sleep 1
+
+export HOST_IP=$(ip route | grep docker0 | awk '{print $9}')
 
 hash docker 2>/dev/null || { echo >&2 "$SCRIPTNAME requires \"docker\""; exit 1; }
 
@@ -58,18 +63,18 @@ function run_shutdown_scripts() {
 
 function start() {
   run_startup_scripts
-  docker-compose -f $COMPOSE_FILE up -d --force-recreate --build
+  docker-compose -f $COMPOSE_FILE up -d --build --force-recreate --remove-orphans
 }
 
 function stop() {
   if [ $(isRunning) ]; then
     run_shutdown_scripts
-    docker-compose -f $COMPOSE_FILE down --remove-orphans
+    docker-compose -f $COMPOSE_FILE down
   fi
 }
 
 function remove() {
-    docker-compose -f $COMPOSE_FILE rm -v
+    docker-compose -f $COMPOSE_FILE rm
 }
 
 function isRunning() {

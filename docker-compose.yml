@@ -8,8 +8,6 @@ services:
       - "${HTTPD_LISTEN_PORT}"
     ports:
       - "${HTTPD_LISTEN_PORT}:${HTTPD_LISTEN_PORT}"
-    env_file:
-      - ./gleipnir/.env
     volumes:
       - ./gleipnir/httpd/nginx.conf:/etc/nginx/nginx.conf
       - ./gleipnir/httpd/upstream.conf:/etc/nginx/upstream.conf
@@ -27,25 +25,29 @@ services:
       dockerfile: Dockerfile
     ports:
       - "9000"
+      - "9001"
     user: "${USER}"
     env_file:
-      - ./gleipnir/.env
+      - ./gleipnir/.env.php
     volumes:
       - ./gleipnir/php/${PHP_VERSION}/conf/php.ini:/usr/local/etc/php/php.ini
       - ./gleipnir/php/${PHP_VERSION}/conf/php-fpm.conf:/usr/local/etc/php-fpm.conf
       - ./gleipnir/php/${PHP_VERSION}/conf/www.conf:/usr/local/etc/www.conf
       - .:/var/www/html
+    extra_hosts:
+      - host.docker.internal:$HOST_IP
 
   database:
     image: mysql:${MYSQL_VERSION}
     ports:
       - "${DB_LISTEN_PORT}:${DB_LISTEN_PORT}"
     env_file:
-      - ./gleipnir/.env
+      - ./gleipnir/.env.mysql
     expose:
       - "${DB_LISTEN_PORT}"
     volumes:
       - db-persistance:/var/lib/mysql
+      - ./gleipnir/mysql/conf.d:/etc/mysql/conf.d
 
   redis:
     image: redis:latest
@@ -56,13 +58,28 @@ services:
     image: rabbitmq:${RABBITMQ_VERSION}-management-alpine
     hostname: ${PROJECT_NAME}-rabbitmq
     env_file:
-      - ./gleipnir/.env
+      - ./gleipnir/.env.rabbitmq
     volumes:
         - rabbitmq-persistance:/var/lib/rabbitmq
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:6.0.0
+    environment:
+      - "http.host=0.0.0.0"
+      - "transport.host=0.0.0.0"
+      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
+      - "discovery.type=single-node"
+    volumes:
+      - es-persistance:/usr/share/elasticsearch/data
+    ports:
+      - 9200:9200
+      - 9300:9300
 
 volumes:
     db-persistance:
       name: ${PROJECT_NAME}-db-data
+    es-persistance:
+      name: ${PROJECT_NAME}-es-data
     rabbitmq-persistance:
       name: ${PROJECT_NAME}-rabbit-data
     redis-persistance:

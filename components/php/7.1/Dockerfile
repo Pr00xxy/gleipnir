@@ -64,6 +64,7 @@ RUN \
     curl
 
 RUN pecl install imagick && docker-php-ext-enable imagick
+RUN pecl install xdebug && docker-php-ext-enable xdebug
 
 # Make sure the volume mount point is empty
 RUN rm -rf /var/www/html/*
