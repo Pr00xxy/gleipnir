@@ -4,7 +4,6 @@ PROJECTPATH=$(pwd)
 USER="$(id -u):$(id -g)"
 SCRIPTNAME=$0
 
-
 ENV_FILE="$PROJECTPATH/gleipnir/.env.gleipnir"
 COMPOSE_FILE="$PROJECTPATH/docker-compose.yml"
 
@@ -22,9 +21,9 @@ set -a
 
 source $ENV_FILE
 
-sleep 1
-
 export HOST_IP=$(ip route | grep docker0 | awk '{print $9}')
+
+sleep 1
 
 hash docker 2>/dev/null || { echo >&2 "$SCRIPTNAME requires \"docker\""; exit 1; }
 
@@ -41,7 +40,7 @@ function usage() {
   printf "  %-15s%-30s\n" "status" "Get the current server status"
 }
 
-function run_startup_scripts() {
+function _run_startup_scripts() {
 
     for component in ./gleipnir/*; do
       if [ -f $component/startup.sh ]; then
@@ -51,7 +50,7 @@ function run_startup_scripts() {
     done
 }
 
-function run_shutdown_scripts() {
+function _run_shutdown_scripts() {
 
     for component in ./gleipnir/*; do
       if [ -f $component/shutdown.sh ]; then
@@ -62,13 +61,13 @@ function run_shutdown_scripts() {
 }
 
 function start() {
-  run_startup_scripts
+  _run_startup_scripts
   docker-compose -f $COMPOSE_FILE up -d --build --force-recreate --remove-orphans
 }
 
 function stop() {
-  if [ $(isRunning) ]; then
-    run_shutdown_scripts
+  if [ $(_isRunning) ]; then
+    _run_shutdown_scripts
     docker-compose -f $COMPOSE_FILE down
   fi
 }
@@ -77,7 +76,7 @@ function remove() {
     docker-compose -f $COMPOSE_FILE rm
 }
 
-function isRunning() {
+function _isRunning() {
   dockerStatusOutput=$(docker-compose -f $COMPOSE_FILE ps -q)
   outputSize=${#dockerStatusOutput}
   if [ "$outputSize" -gt 0 ]; then
@@ -88,7 +87,7 @@ function isRunning() {
 }
 
 function status() {
-  if [ ! $(isRunning) ]; then
+  if [ ! $(_isRunning) ]; then
     echo >&2 "Not running";
     exit 1;
   fi
@@ -96,16 +95,12 @@ function status() {
 }
 
 function restart() {
-  stop
-  start
-}
-
-function executeInDocker() {
-  if [ ! $(isRunning) ]; then
-    echo >&2 "Docker is not running. Please start the containers first.";
-    exit 1;
+  if [[ -z "$1" ]]; then
+    stop
+    start
+  else
+    docker-compose -f $COMPOSE_FILE restart $1
   fi
-  docker-compose exec php bash -c "bin/magento $*"
 }
 
 function importDb()
@@ -113,22 +108,49 @@ function importDb()
   docker-compose exec -T database mysql -uroot -p${MYSQL_ROOT_PASSWORD} ${MYSQL_DATABASE} < $1
 }
 
-case "$1" in
-    exec)
-    shift 1
-    executeInDocker $*
+function _execPhp() {
+  case "$1" in
+    xdebug)
+      case "$2" in
+        "on")
+        echo -n "Turning xdebug on ... "
+        sed -i '/xdebug.default_enable=0/c\xdebug.default_enable=1' ./gleipnir/php/${PHP_VERSION}/conf/php.ini
+        sed -i '/xdebug.remote_autostart=0/c\xdebug.remote_autostart=1' ./gleipnir/php/${PHP_VERSION}/conf/php.ini
+        echo "done"
+        restart php
+        ;;
+        "off")
+        echo -n "Turning xdebug off ... "
+        sed -i '/xdebug.default_enable=1/c\xdebug.default_enable=0' ./gleipnir/php/${PHP_VERSION}/conf/php.ini
+        sed -i '/xdebug.remote_autostart=1/c\xdebug.remote_autostart=0' ./gleipnir/php/${PHP_VERSION}/conf/php.ini
+        echo "done"
+        restart php
+        ;;
+      esac
     ;;
+    exec)
+      if [ ! $(_isRunning) ]; then
+        echo >&2 "Docker is not running. Please start the containers first.";
+        exit 1;
+      fi
+      shift 1
+      docker-compose exec php php $*
+    ;;
+  esac
+}
 
+case "$1" in
     start)
     start
     ;;
 
-    restart)
-    restart
-    ;;
-
     stop)
     stop
+    ;;
+
+    restart)
+    shift 1
+    restart $*
     ;;
 
     status)
@@ -144,6 +166,10 @@ case "$1" in
     importDb $*
     ;;
 
+    php)
+    shift 1
+    _execPhp $*
+    ;;
     *)
     usage
     ;;
