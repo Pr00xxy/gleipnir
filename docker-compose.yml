@@ -84,3 +84,9 @@ volumes:
       name: ${PROJECT_NAME}-rabbit-data
     redis-persistance:
       name: ${PROJECT_NAME}-redis-data
+
+networks:
+  default:
+      ipam:
+          config:
+              - subnet: 10.123.0.0/16      
