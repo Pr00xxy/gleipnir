@@ -121,16 +121,16 @@ function _execPhp() {
       case "$2" in
         "on")
         echo -n "Turning xdebug on ... "
-        sed -i '/xdebug.default_enable=0/c\xdebug.default_enable=1' ./gleipnir/php/${PHP_VERSION}/conf/php.ini
-        sed -i '/xdebug.remote_autostart=0/c\xdebug.remote_autostart=1' ./gleipnir/php/${PHP_VERSION}/conf/php.ini
+        sed -i '/xdebug.default_enable=0/c\xdebug.default_enable=1' $PROJECTPATH/vendor/prooxxy/gleipnir/components/php/${PHP_VERSION}/conf/php.ini
+        sed -i '/xdebug.remote_autostart=0/c\xdebug.remote_autostart=1' $PROJECTPATH/vendor/prooxxy/gleipnir/components/php/${PHP_VERSION}/conf/php.ini
         echo "done"
         restart php
         exit 0
         ;;
         "off")
         echo -n "Turning xdebug off ... "
-        sed -i '/xdebug.default_enable=1/c\xdebug.default_enable=0' ./gleipnir/php/${PHP_VERSION}/conf/php.ini
-        sed -i '/xdebug.remote_autostart=1/c\xdebug.remote_autostart=0' ./gleipnir/php/${PHP_VERSION}/conf/php.ini
+        sed -i '/xdebug.default_enable=1/c\xdebug.default_enable=0' $PROJECTPATH/vendor/prooxxy/gleipnir/components/php/${PHP_VERSION}/conf/php.ini
+        sed -i '/xdebug.remote_autostart=1/c\xdebug.remote_autostart=0' $PROJECTPATH/vendor/prooxxy/gleipnir/components/php/${PHP_VERSION}/conf/php.ini
         echo "done"
         restart php
         exit 0
