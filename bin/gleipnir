@@ -106,6 +106,9 @@ function restart() {
     stop
     start
   else
+    source $PROJECTPATH/vendor/prooxxy/gleipnir/components/$1/shutdown.sh
+    sleep 1
+    source $PROJECTPATH/vendor/prooxxy/gleipnir/components/$1/startup.sh
     docker-compose -f $COMPOSE_FILE restart $1
   fi
 }
