@@ -4,10 +4,11 @@ PROJECTPATH=$(pwd)
 USER="$(id -u):$(id -g)"
 SCRIPTNAME=$0
 
-COMPOSE_PROJECT_NAME=${PROJECT_NAME}
 
 ENV_FILE="$PROJECTPATH/vendor/prooxxy/gleipnir/components/.env.gleipnir"
 COMPOSE_FILE="$PROJECTPATH/vendor/prooxxy/gleipnir/docker-compose.yml"
+START_SCRIPT_LOCATION="$PROJECTPATH/vendor/prooxxy/gleipnir/components/*"
+
 
 if [ ! -f $ENV_FILE ]; then
   echo >&2 "The file that holds the environment variables was not found at $ENV_FILE"
@@ -23,6 +24,8 @@ set -a
 
 source $ENV_FILE
 
+export PROJECTPATH=$PROJECTPATH
+export COMPOSE_PROJECT_NAME=${PROJECT_NAME}
 export HOST_IP=$(ip route | grep docker0 | awk '{print $9}')
 
 sleep 1
@@ -46,7 +49,7 @@ function usage() {
 
 function _run_startup_scripts() {
 
-    for component in ./gleipnir/*; do
+    for component in $START_SCRIPT_LOCATION; do
       if [ -f $component/startup.sh ]; then
         source $component/startup.sh
         sleep 2
@@ -56,7 +59,7 @@ function _run_startup_scripts() {
 
 function _run_shutdown_scripts() {
 
-    for component in ./gleipnir/*; do
+    for component in $START_SCRIPT_LOCATION; do
       if [ -f $component/shutdown.sh ]; then
         source $component/shutdown.sh
         sleep 2
