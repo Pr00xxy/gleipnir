@@ -78,8 +78,8 @@ services:
   mailhog:
     image: mailhog/mailhog
     ports: 
-      - 1025:1025
-      - 8025:8025
+      - ${MAILHOG_SMTP_PORT}:1025
+      - ${MAILHOG_WEB_PORT}:8025
 
 volumes:
     db-persistance:
