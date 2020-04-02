@@ -13,16 +13,8 @@
   "extra": {
     "map": [
       [
-        "components",
-        "gleipnir"
-      ],
-      [
-        "bin/console",
-        "bin/console"
-      ],
-      [
-        "docker-compose.yml",
-        "docker-compose.yml"
+        "bin/gleipnir",
+        "bin/gleipnir"
       ]
     ]
   }
