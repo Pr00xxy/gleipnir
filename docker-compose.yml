@@ -9,31 +9,31 @@ services:
     ports:
       - "${HTTPD_LISTEN_PORT}:${HTTPD_LISTEN_PORT}"
     volumes:
-      - ./vendor/prooxxy/gleipnir/components/httpd/nginx.conf:/etc/nginx/nginx.conf
-      - ./vendor/prooxxy/gleipnir/components/httpd/upstream.conf:/etc/nginx/upstream.conf
-      - ./vendor/prooxxy/gleipnir/components/httpd/m2.conf:/etc/nginx/m2.conf
-      - ./vendor/prooxxy/gleipnir/components/httpd/sites:/etc/nginx/sites-available
-      - ./vendor/prooxxy/gleipnir/components/ssl/certificates:/etc/nginx/certificates
-      - .:/var/www/html
+      - ./components/httpd/nginx.conf:/etc/nginx/nginx.conf
+      - ./components/httpd/upstream.conf:/etc/nginx/upstream.conf
+      - ./components/httpd/m2.conf:/etc/nginx/m2.conf
+      - ./components/httpd/sites:/etc/nginx/sites-available
+      - ./components/ssl/certificates:/etc/nginx/certificates
+      - ${PROJECTPATH}:/var/www/html
     depends_on:
       - php
       - database
 
   php:
     build:
-      context: ./vendor/prooxxy/gleipnir/components/php/${PHP_VERSION}
+      context: ./components/php/${PHP_VERSION}
       dockerfile: Dockerfile
     ports:
       - "9000"
       - "9001"
     user: "${USER}"
     env_file:
-      - ./vendor/prooxxy/gleipnir/components/.env.php
+      - ./components/.env.php
     volumes:
-      - ./vendor/prooxxy/gleipnir/components/php/${PHP_VERSION}/conf/php.ini:/usr/local/etc/php/php.ini
-      - ./vendor/prooxxy/gleipnir/components/php/${PHP_VERSION}/conf/php-fpm.conf:/usr/local/etc/php-fpm.conf
-      - ./vendor/prooxxy/gleipnir/components/php/${PHP_VERSION}/conf/www.conf:/usr/local/etc/www.conf
-      - .:/var/www/html
+      - ./components/php/${PHP_VERSION}/conf/php.ini:/usr/local/etc/php/php.ini
+      - ./components/php/${PHP_VERSION}/conf/php-fpm.conf:/usr/local/etc/php-fpm.conf
+      - ./components/php/${PHP_VERSION}/conf/www.conf:/usr/local/etc/www.conf
+      - ${PROJECTPATH}:/var/www/html
     extra_hosts:
       - host.docker.internal:$HOST_IP
 
@@ -42,12 +42,12 @@ services:
     ports:
       - "${DB_LISTEN_PORT}:${DB_LISTEN_PORT}"
     env_file:
-      - ./vendor/prooxxy/gleipnir/components/.env.mysql
+      - ./components/.env.mysql
     expose:
       - "${DB_LISTEN_PORT}"
     volumes:
       - db-persistance:/var/lib/mysql
-      - ./vendor/prooxxy/gleipnir/components/mysql/conf.d:/etc/mysql/conf.d
+      - ./components/mysql/conf.d:/etc/mysql/conf.d
 
   redis:
     image: redis:latest
@@ -58,7 +58,7 @@ services:
     image: rabbitmq:${RABBITMQ_VERSION}-management-alpine
     hostname: ${PROJECT_NAME}-rabbitmq
     env_file:
-      - ./vendor/prooxxy/gleipnir/components/.env.rabbitmq
+      - ./components/.env.rabbitmq
     volumes:
         - rabbitmq-persistance:/var/lib/rabbitmq
 
@@ -93,6 +93,8 @@ volumes:
 
 networks:
   default:
-      ipam:
-          config:
-              - subnet: 10.123.0.0/16      
+    name: ${PROJECT_NAME}_NETWORK
+    ipam:
+      config:
+      - subnet: 10.123.0.0/16      
+
