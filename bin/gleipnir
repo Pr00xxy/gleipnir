@@ -4,11 +4,10 @@ PROJECTPATH=$(pwd)
 USER="$(id -u):$(id -g)"
 SCRIPTNAME=$0
 
-
-ENV_FILE="$PROJECTPATH/vendor/prooxxy/gleipnir/components/.env.gleipnir"
+COMPONENTS_PATH="$PROJECTPATH/vendor/prooxxy/gleipnir/components"
+BOOT_SCRIPT_PATH="$COMPONENTS_PATH/*"
+ENV_FILE="$COMPONENTS_PATH/.env.gleipnir"
 COMPOSE_FILE="$PROJECTPATH/vendor/prooxxy/gleipnir/docker-compose.yml"
-START_SCRIPT_LOCATION="$PROJECTPATH/vendor/prooxxy/gleipnir/components/*"
-
 
 if [ ! -f $ENV_FILE ]; then
   echo >&2 "The file that holds the environment variables was not found at $ENV_FILE"
@@ -49,7 +48,7 @@ function usage() {
 
 function _run_startup_scripts() {
 
-    for component in $START_SCRIPT_LOCATION; do
+    for component in $BOOT_SCRIPT_PATH; do
       if [ -f $component/startup.sh ]; then
         source $component/startup.sh
         sleep 2
@@ -59,7 +58,7 @@ function _run_startup_scripts() {
 
 function _run_shutdown_scripts() {
 
-    for component in $START_SCRIPT_LOCATION; do
+    for component in $BOOT_SCRIPT_PATH; do
       if [ -f $component/shutdown.sh ]; then
         source $component/shutdown.sh
         sleep 2
@@ -106,15 +105,16 @@ function restart() {
     stop
     start
   else
-    source $PROJECTPATH/vendor/prooxxy/gleipnir/components/$1/shutdown.sh
+    source $COMPONENTS_PATH/$1/shutdown.sh
     sleep 1
-    source $PROJECTPATH/vendor/prooxxy/gleipnir/components/$1/startup.sh
+    source $COMPONENTS_PATH/$1/startup.sh
     docker-compose -f $COMPOSE_FILE restart $1
   fi
 }
 
 function importDb()
 {
+  source $COMPONENTS_PATH/.env.mysql
   docker-compose exec -T database mysql -uroot -p${MYSQL_ROOT_PASSWORD} ${MYSQL_DATABASE} < $1
 }
 
@@ -124,16 +124,16 @@ function _execPhp() {
       case "$2" in
         "on")
         echo -n "Turning xdebug on ... "
-        sed -i '/xdebug.default_enable=0/c\xdebug.default_enable=1' $PROJECTPATH/vendor/prooxxy/gleipnir/components/php/${PHP_VERSION}/conf/php.ini
-        sed -i '/xdebug.remote_autostart=0/c\xdebug.remote_autostart=1' $PROJECTPATH/vendor/prooxxy/gleipnir/components/php/${PHP_VERSION}/conf/php.ini
+        sed -i '/xdebug.default_enable=0/c\xdebug.default_enable=1' $COMPONENTS_PATH/php/${PHP_VERSION}/conf/php.ini
+        sed -i '/xdebug.remote_autostart=0/c\xdebug.remote_autostart=1' $COMPONENTS_PATH/php/${PHP_VERSION}/conf/php.ini
         echo "done"
         restart php
         exit 0
         ;;
         "off")
         echo -n "Turning xdebug off ... "
-        sed -i '/xdebug.default_enable=1/c\xdebug.default_enable=0' $PROJECTPATH/vendor/prooxxy/gleipnir/components/php/${PHP_VERSION}/conf/php.ini
-        sed -i '/xdebug.remote_autostart=1/c\xdebug.remote_autostart=0' $PROJECTPATH/vendor/prooxxy/gleipnir/components/php/${PHP_VERSION}/conf/php.ini
+        sed -i '/xdebug.default_enable=1/c\xdebug.default_enable=0' $COMPONENTS_PATH/php/${PHP_VERSION}/conf/php.ini
+        sed -i '/xdebug.remote_autostart=1/c\xdebug.remote_autostart=0' $COMPONENTS_PATH/php/${PHP_VERSION}/conf/php.ini
         echo "done"
         restart php
         exit 0
