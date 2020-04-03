@@ -8,6 +8,6 @@ for config in ${MULTISITE[@]} ; do
 
     echo "Remove vhost for $domain"
 
-    rm ${PROJECTPATH}/vendor/prooxxy/gleipnir/components/httpd/sites/${domain}.conf
+    rm $COMPONENTS_PATH/httpd/sites/${domain}.conf
 
 done

@@ -9,7 +9,7 @@ for config in ${MULTISITE[@]} ; do
 
     echo "Remove certificates for $domain"
 
-    rm ${PROJECTPATH}/vendor/prooxxy/gleipnir/components/ssl/certificates/${domain}.key
-    rm ${PROJECTPATH}/vendor/prooxxy/gleipnir/components/ssl/certificates/${domain}.crt
+    rm $COMPONENTS_PATH/ssl/certificates/${domain}.key
+    rm $COMPONENTS_PATH/ssl/certificates/${domain}.crt
 
 done
