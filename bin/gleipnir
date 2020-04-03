@@ -4,10 +4,11 @@ PROJECTPATH=$(pwd)
 USER="$(id -u):$(id -g)"
 SCRIPTNAME=$0
 
-COMPONENTS_PATH="$PROJECTPATH/vendor/prooxxy/gleipnir/components"
-BOOT_SCRIPT_PATH="$COMPONENTS_PATH/*"
+GLEIPNIR_PATH="$PROJECTPATH/vendor/prooxxy/gleipnir"
+COMPONENTS_PATH="$GLEIPNIR_PATH/components"
+BOOT_SCRIPT_PATH="${COMPONENTS_PATH}/*"
 ENV_FILE="$COMPONENTS_PATH/.env.gleipnir"
-COMPOSE_FILE="$PROJECTPATH/vendor/prooxxy/gleipnir/docker-compose.yml"
+COMPOSE_FILE="$GLEIPNIR_PATH/docker-compose.yml"
 
 if [ ! -f $ENV_FILE ]; then
   echo >&2 "The file that holds the environment variables was not found at $ENV_FILE"
@@ -47,23 +48,28 @@ function usage() {
 }
 
 function _run_startup_scripts() {
-
-    for component in $BOOT_SCRIPT_PATH; do
-      if [ -f $component/startup.sh ]; then
-        source $component/startup.sh
-        sleep 2
-      fi
-    done
+  _run_script "startup" $1
 }
 
 function _run_shutdown_scripts() {
+  _run_script "shutdown" $1
+}
 
-    for component in $BOOT_SCRIPT_PATH; do
-      if [ -f $component/shutdown.sh ]; then
-        source $component/shutdown.sh
-        sleep 2
+function _run_script() {
+    if [ $# -eq 2 ]; then
+      if [ -f COMPONENTS_PATH/$2/$1.sh ]; then
+        echo "Running $1.sh for $2"
+        source $COMPONENTS_PATH/$2/$1.sh
+        sleep 1
       fi
-    done
+    else
+      for component in $BOOT_SCRIPT_PATH; do
+        if [ -f $component/$1.sh ]; then
+          source $component/$1.sh
+          sleep 1
+        fi
+      done
+    fi  
 }
 
 function start() {
@@ -105,9 +111,8 @@ function restart() {
     stop
     start
   else
-    source $COMPONENTS_PATH/$1/shutdown.sh
-    sleep 1
-    source $COMPONENTS_PATH/$1/startup.sh
+    _run_shutdown_scripts $1
+    _run_startup_scripts $1
     docker-compose -f $COMPOSE_FILE restart $1
   fi
 }
@@ -123,24 +128,20 @@ function _execPhp() {
     xdebug)
       case "$2" in
         "on")
-        echo -n "Turning xdebug on ... "
-        sed -i '/xdebug.default_enable=0/c\xdebug.default_enable=1' $COMPONENTS_PATH/php/${PHP_VERSION}/conf/php.ini
-        sed -i '/xdebug.remote_autostart=0/c\xdebug.remote_autostart=1' $COMPONENTS_PATH/php/${PHP_VERSION}/conf/php.ini
-        echo "done"
-        restart php
-        exit 0
-        ;;
+          source $COMPONENTS_PATH/php/enable_xdebug.sh
+          restart php
+          exit 0
+          ;;
         "off")
-        echo -n "Turning xdebug off ... "
-        sed -i '/xdebug.default_enable=1/c\xdebug.default_enable=0' $COMPONENTS_PATH/php/${PHP_VERSION}/conf/php.ini
-        sed -i '/xdebug.remote_autostart=1/c\xdebug.remote_autostart=0' $COMPONENTS_PATH/php/${PHP_VERSION}/conf/php.ini
-        echo "done"
-        restart php
-        exit 0
-        ;;
+          source $COMPONENTS_PATH/php/disable_xdebug.sh
+          restart php
+          exit 0
+          ;;
+
       esac
       usage
-    ;;
+      ;;
+
     exec)
       if [ ! $(_isRunning) ]; then
         echo >&2 "Docker is not running. Please start the containers first.";
@@ -154,38 +155,38 @@ function _execPhp() {
 
 case "$1" in
     start)
-    start
-    ;;
+      start
+      ;;
 
     stop)
-    stop
-    ;;
+      stop
+      ;;
 
     restart)
-    shift 1
-    restart $*
-    ;;
+      shift 1
+      restart $*
+      ;;
 
     status)
-    status
-    ;;
+      status
+      ;;
 
     remove)
-    remove
-    ;;
+      remove
+      ;;
 
     importdb)
-    shift 1
-    importDb $*
-    ;;
+      shift 1
+      importDb $*
+      ;;
 
     php)
-    shift 1
-    _execPhp $*
-    ;;
+      shift 1
+      _execPhp $*
+      ;;
     *)
-    usage
-    ;;
+      usage
+      ;;
 esac
 
 exit 0
