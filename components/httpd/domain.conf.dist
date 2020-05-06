@@ -1,3 +1,11 @@
+server {
+    server_name NEEDLE_DOMAIN${TLD};
+    listen 80;
+
+    root /var/www/html/pub;
+
+    return 301 https://NEEDLE_DOMAIN${TLD}${DOLLAR}uri;
+}
 
 server {
     server_name NEEDLE_DOMAIN${TLD};

@@ -2,3 +2,4 @@
 *.crt
 *.key
 components/httpd/sites/*.conf
+docker-compose.yml
