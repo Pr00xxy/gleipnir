@@ -186,8 +186,7 @@ case "$1" in
         echo >&2 "Docker is not running. Please start the containers first.";
         exit 1;
       fi
-      shift 1
-      docker-compose exec php bash -c "bin/magento $*"
+      docker-compose -f $COMPOSE_FILE exec php bash -c "bin/magento $*"
 esac
 
 exit 0
