@@ -81,6 +81,16 @@ services:
       - ${MAILHOG_SMTP_PORT}:1025
       - ${MAILHOG_WEB_PORT}:8025
 
+  mongodb:
+    image: mongo:${MONGODB_VERSION}
+    restart: always
+    env_file:
+      - ./components/.env.mongodb
+    volumes:
+      - mongo-persistance:/var/lib/mongodb
+      - ./gleipnir/mongodb/mongod.conf:/etc/mongod.conf
+      - ./gleipnir/mongodb/mongodb.conf:/etc/mongodb.conf
+
 volumes:
     db-persistance:
       name: ${PROJECT_NAME}-db-data
@@ -90,6 +100,8 @@ volumes:
       name: ${PROJECT_NAME}-rabbit-data
     redis-persistance:
       name: ${PROJECT_NAME}-redis-data
+    mongo-persistance:
+      name: ${PROJECT_NAME}-mongo-data
 
 networks:
   default:
