@@ -1,7 +1,7 @@
 {
   "name": "prooxxy/gleipnir",
   "type": "magento2-component",
-  "version": "0.8.2",
+  "version": "0.8.3",
   "keywords": ["magento2", "docker"],
   "licence": "MIT",
   "authors": [
