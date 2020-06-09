@@ -11,7 +11,6 @@ function append_certificate_instructions() {
     sed -i "s:NEEDLE_KEY:ssl_certificate_key /etc/nginx/certificates/${1}.key;:g" $COMPONENTS_PATH/httpd/sites/${1}.conf
 }
 
-
 for config in ${MULTISITE[@]} ; do
 
     IFS=':' read -r -a array <<< "$config"
