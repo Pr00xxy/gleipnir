@@ -9,17 +9,15 @@ COMPONENTS_PATH="$GLEIPNIR_PATH/components"
 BOOT_SCRIPT_PATH="${COMPONENTS_PATH}/*"
 ENV_FILE="$COMPONENTS_PATH/.env.gleipnir"
 COMPOSE_FILE="$GLEIPNIR_PATH/docker-compose.yml"
+DOCKER_COMPOSE_CMD="docker-compose -f $COMPOSE_FILE"
 ETC_HOSTS=/etc/hosts
 IP="127.0.0.1"
 
 function _compile_docker_compose_file() {
-  
   echo >&1 "Compiling..."
   envsubst < $GLEIPNIR_PATH/docker-compose.yml.dist > $COMPOSE_FILE
   echo >&1 "Done"
-
 }
-
 
 if [ ! -f $ENV_FILE ]; then
   echo >&2 "The file that holds the environment variables was not found at $ENV_FILE"
@@ -33,8 +31,6 @@ source $ENV_FILE
 export PROJECTPATH=$PROJECTPATH
 export COMPOSE_PROJECT_NAME=${PROJECT_NAME}
 export HOST_IP=$(ip route | grep docker0 | awk '{print $9}')
-
-_compile_docker_compose_file
 
 sleep 1
 
@@ -108,23 +104,24 @@ function _run_script() {
 }
 
 function start() {
+  _compile_docker_compose_file
   _run_startup_scripts
-  docker-compose -f $COMPOSE_FILE up -d --build --force-recreate --remove-orphans
+  $DOCKER_COMPOSE_CMD up -d --build --force-recreate --remove-orphans
 }
 
 function stop() {
   if [ $(_isRunning) ]; then
     _run_shutdown_scripts
-    docker-compose -f $COMPOSE_FILE down
+    $DOCKER_COMPOSE_CMD down
   fi
 }
 
 function remove() {
-    docker-compose -f $COMPOSE_FILE rm
+    $DOCKER_COMPOSE_CMD rm
 }
 
 function _isRunning() {
-  dockerStatusOutput=$(docker-compose -f $COMPOSE_FILE ps -q)
+  dockerStatusOutput=$($DOCKER_COMPOSE_CMD ps -q)
   outputSize=${#dockerStatusOutput}
   if [ "$outputSize" -gt 0 ]; then
     echo true
@@ -138,7 +135,7 @@ function status() {
     echo >&2 "Not running";
     exit 1;
   fi
-  docker-compose -f $COMPOSE_FILE ps -q | xargs docker inspect --format='{{ .Name }} {{ .State.Status }}' | sed 's:^/::g' | xargs printf "%-45s%-30s\n"
+  $DOCKER_COMPOSE_CMD ps -q | xargs docker inspect --format='{{ .Name }} {{ .State.Status }}' | sed 's:^/::g' | xargs printf "%-45s%-30s\n"
 }
 
 function restart() {
@@ -148,14 +145,18 @@ function restart() {
   else
     _run_shutdown_scripts $1
     _run_startup_scripts $1
-    docker-compose -f $COMPOSE_FILE restart $1
+    $DOCKER_COMPOSE_CMD restart $1
   fi
 }
 
 function importDb()
 {
   source $COMPONENTS_PATH/.env.mysql
-  docker-compose -f $COMPOSE_FILE exec -T database mysql -uroot -p${MYSQL_ROOT_PASSWORD} ${MYSQL_DATABASE} < $1
+  $DOCKER_COMPOSE_CMD exec -T database mysql -uroot -p${MYSQL_ROOT_PASSWORD} ${MYSQL_DATABASE} < $1
+}
+
+function _execRedis() {
+  $DOCKER_COMPOSE_CMD exec redis bash -c "redis-cli $1"
 }
 
 function _execPhp() {
@@ -210,12 +211,17 @@ case "$1" in
       shift 1
       _execPhp $*
       ;;
+
+    redis)
+      shift 1
+      _execRedis $*
+      ;; 
     *)
       if [ ! $(_isRunning) ]; then
         echo >&2 "Docker is not running. Please start the containers first.";
         exit 1;
       fi
-      docker-compose -f $COMPOSE_FILE exec php bash -c "bin/magento $*"
+      $DOCKER_COMPOSE_CMD exec php bash -c "bin/magento $*"
 esac
 
 exit 0
