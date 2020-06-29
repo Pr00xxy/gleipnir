@@ -1,15 +1,6 @@
 server {
     server_name NEEDLE_DOMAIN${TLD};
-    listen 80;
-
-    root /var/www/html/pub;
-
-    return 301 https://NEEDLE_DOMAIN${TLD}${DOLLAR}uri;
-}
-
-server {
-    server_name NEEDLE_DOMAIN${TLD};
-    listen ${HTTPD_LISTEN_PORT} ssl http2;
+    listen ${HTTPD_LISTEN_PORT};
 
     set ${DOLLAR}MAGE_ROOT /var/www/html;
     set ${DOLLAR}MAGE_MODE developer;
@@ -18,9 +9,5 @@ server {
     set ${DOLLAR}HTTPS_FORWARD on;
     set ${DOLLAR}FPM_USER root;
 
-    NEEDLE_CRT
-    NEEDLE_KEY
-
     include /etc/nginx/m2.conf;
-
 }

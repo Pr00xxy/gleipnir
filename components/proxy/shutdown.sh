@@ -6,8 +6,8 @@ for config in ${MULTISITE[@]} ; do
 
     domain=${array[0]}
 
-    echo "Remove httpd vhost for $domain"
+    echo "Remove proxy vhost for $domain"
 
-    rm $COMPONENTS_PATH/httpd/sites/${domain}.conf
+    rm $COMPONENTS_PATH/proxy/sites/${domain}.conf
 
 done
