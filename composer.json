@@ -1,9 +1,10 @@
 {
   "name": "prooxxy/gleipnir",
+  "description": "My personal plug and play docker-composer wrapper for Magento 2",
   "type": "magento2-component",
   "version": "0.10.0",
   "keywords": ["magento2", "docker"],
-  "licence": "MIT",
+  "license": ["MIT"],
   "authors": [
     {
       "name": "Hampus Westman",
