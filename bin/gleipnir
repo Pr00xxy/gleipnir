@@ -59,33 +59,6 @@ function _run_shutdown_scripts() {
   _run_script "shutdown" $1
 }
 
-# function _remove_host() {
-#     if [ -n "$(grep $HOSTNAME /etc/hosts)" ]
-#     then
-#         echo "Removing hosts entry for $HOSTNAME";
-#         sudo sed -i".bak" "/$HOSTNAME/d" $ETC_HOSTS
-#     fi
-# }
-
-# function _add_host() {
-#     HOSTNAME=$1
-#     HOSTS_LINE="$IP\t$HOSTNAME"
-#     if [ -n "$(grep $HOSTNAME /etc/hosts)" ]
-#         then
-#             echo "$HOSTNAME already exists : $(grep $HOSTNAME $ETC_HOSTS)"
-#         else
-#             echo "Adding $HOSTNAME to your $ETC_HOSTS";
-#             sudo -- sh -c -e "echo '$HOSTS_LINE' >> /etc/hosts";
-
-#             if [ -n "$(grep $HOSTNAME /etc/hosts)" ]
-#                 then
-#                     echo "$HOSTNAME was added succesfully \n $(grep $HOSTNAME /etc/hosts)";
-#                 else
-#                     echo "Failed to Add $HOSTNAME, Try again!";
-#             fi
-#     fi
-# }
-
 function _run_script() {
     if [ $# -eq 2 ]; then
       if [ -f COMPONENTS_PATH/$2/$1.sh ]; then
