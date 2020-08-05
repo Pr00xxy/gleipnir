@@ -46,7 +46,7 @@ services:
       - ./components/php/${PHP_VERSION}/conf/www.conf:/usr/local/etc/www.conf
       - ${PROJECTPATH}:/var/www/html
     extra_hosts:
-      - host.docker.internal:$HOST_IP
+      host.docker.internal:$HOST_IP
 
   database:
     image: mysql:${MYSQL_VERSION}
