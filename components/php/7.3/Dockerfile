@@ -3,6 +3,7 @@ FROM php:7.3-fpm-alpine
 ENV PHP_EXTRA_CONFIGURE_ARGS --enable-fpm --with-fpm-user=www-data --with-fpm-group=www-data --enable-intl --enable-opcache --enable-zip
 
 RUN apk add --virtual .deps --update --no-cache \
+  bash \
   make \
   gcc \
   autoconf \

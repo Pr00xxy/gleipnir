@@ -98,9 +98,9 @@ services:
     env_file:
       - ./components/.env.mongodb
     volumes:
-      - mongo-persistance:/var/lib/mongodb
       - ./components/mongodb/mongod.conf:/etc/mongod.conf
       - ./components/mongodb/mongodb.conf:/etc/mongodb.conf
+      - mongo-persistance:/var/lib/mongodb
 
 volumes:
     db-persistance:
