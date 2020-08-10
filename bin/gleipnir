@@ -128,6 +128,12 @@ function importDb()
   $DOCKER_COMPOSE_CMD exec -T database mysql -uroot -p${MYSQL_ROOT_PASSWORD} ${MYSQL_DATABASE} < $1
 }
 
+function exportDb()
+{
+  source $COMPONENTS_PATH/.env.mysql
+  docker-compose -f $COMPOSE_FILE exec -T database mysqldump -uroot -p${MYSQL_ROOT_PASSWORD} ${MYSQL_DATABASE} > $1
+}
+
 function _execRedis() {
   $DOCKER_COMPOSE_CMD exec redis bash -c "redis-cli $1"
 }
@@ -178,6 +184,11 @@ case "$1" in
     importdb)
       shift 1
       importDb $*
+      ;;
+    
+    exportdb)
+      shift 1
+      exportDb $*
       ;;
 
     php)
