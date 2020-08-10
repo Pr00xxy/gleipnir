@@ -7,7 +7,9 @@ SCRIPTNAME=$0
 GLEIPNIR_PATH="$PROJECTPATH/vendor/prooxxy/gleipnir"
 COMPONENTS_PATH="$GLEIPNIR_PATH/components"
 BOOT_SCRIPT_PATH="${COMPONENTS_PATH}/*"
-ENV_FILE="$COMPONENTS_PATH/.env.gleipnir"
+CONFIG_PATH="$GLEIPNIR_PATH/config"
+OVERRIDE_CONFIG_PATH="$PROJECTPATH/.gleipnir/config"
+ENV_FILE=".env.gleipnir"
 COMPOSE_FILE="$GLEIPNIR_PATH/docker-compose.yml"
 DOCKER_COMPOSE_CMD="docker-compose -f $COMPOSE_FILE"
 ETC_HOSTS=/etc/hosts
@@ -26,7 +28,7 @@ fi
 
 set -a
 
-source $ENV_FILE
+_load_config $ENV_FILE
 
 export PROJECTPATH=$PROJECTPATH
 export COMPOSE_PROJECT_NAME=${PROJECT_NAME}
@@ -37,6 +39,14 @@ sleep 1
 hash docker 2>/dev/null || { echo >&2 "$SCRIPTNAME requires \"docker\""; exit 1; }
 
 hash docker-compose 2>/dev/null || { echo >&2 "$SCRIPTNAME requires \"docker-compose\""; exit 1; }
+
+function _load_config()
+{
+  source $CONFIG_PATH/$1
+  if [ -f $OVERRIDE_CONFIG_PATH/$1 ]; fi
+    source $OVERRIDE_CONFIG_PATH/$1
+  fi
+}
 
 function usage() {
   echo -e "Usage:\n\n  $SCRIPTNAME <action> <arguments...> \n"
@@ -124,13 +134,13 @@ function restart() {
 
 function importDb()
 {
-  source $COMPONENTS_PATH/.env.mysql
+  _load_config .env.mysql
   $DOCKER_COMPOSE_CMD exec -T database mysql -uroot -p${MYSQL_ROOT_PASSWORD} ${MYSQL_DATABASE} < $1
 }
 
 function exportDb()
 {
-  source $COMPONENTS_PATH/.env.mysql
+  _load_config .env.mysql
   docker-compose -f $COMPOSE_FILE exec -T database mysqldump -uroot -p${MYSQL_ROOT_PASSWORD} ${MYSQL_DATABASE} > $1
 }
 

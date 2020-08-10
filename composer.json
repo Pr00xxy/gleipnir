@@ -16,6 +16,10 @@
       [
         "bin/gleipnir",
         "bin/gleipnir"
+      ],
+      [
+        ".gleipnir/config",
+        ".gleipnir/config"
       ]
     ]
   }
