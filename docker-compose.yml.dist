@@ -39,21 +39,21 @@ services:
       - "9001"
     user: "${USER}"
     env_file:
-      - ./components/.env.php
+      - ./config/.env.php
     volumes:
       - ./components/php/${PHP_VERSION}/conf/php.ini:/usr/local/etc/php/php.ini
       - ./components/php/${PHP_VERSION}/conf/php-fpm.conf:/usr/local/etc/php-fpm.conf
       - ./components/php/${PHP_VERSION}/conf/www.conf:/usr/local/etc/www.conf
       - ${PROJECTPATH}:/var/www/html
     extra_hosts:
-      host.docker.internal:$HOST_IP
+      host.docker.internal: $HOST_IP
 
   database:
     image: mysql:${MYSQL_VERSION}
     ports:
       - "${DB_LISTEN_PORT}:${DB_LISTEN_PORT}"
     env_file:
-      - ./components/.env.mysql
+      - ./config/.env.mysql
     expose:
       - "${DB_LISTEN_PORT}"
     volumes:
@@ -69,7 +69,7 @@ services:
     image: rabbitmq:${RABBITMQ_VERSION}-management-alpine
     hostname: ${PROJECT_NAME}-rabbitmq
     env_file:
-      - ./components/.env.rabbitmq
+      - ./config/.env.rabbitmq
     volumes:
       - rabbitmq-persistance:/var/lib/rabbitmq
 
@@ -96,7 +96,7 @@ services:
     image: mongo:${MONGODB_VERSION}
     restart: always
     env_file:
-      - ./components/.env.mongodb
+      - ./config/.env.mongodb
     volumes:
       - ./components/mongodb/mongod.conf:/etc/mongod.conf
       - ./components/mongodb/mongodb.conf:/etc/mongodb.conf
