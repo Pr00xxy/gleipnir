@@ -2,5 +2,5 @@
 *.crt
 *.key
 components/httpd/sites/*.conf
-components/httpd/proxy/*.conf
+components/proxy/sites/*.conf
 docker-compose.yml
