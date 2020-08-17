@@ -21,7 +21,8 @@ RUN apk add --virtual .deps --update --no-cache \
   libzip-dev \ 
   libxslt-dev \
   shadow \
-  zlib-dev
+  zlib-dev \
+  oniguruma-dev
 
 # http://devdocs.magento.com/guides/v2.0/install-gde/system-requirements.html
 RUN \
