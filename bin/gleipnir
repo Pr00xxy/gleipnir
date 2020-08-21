@@ -91,10 +91,14 @@ function _run_script() {
     fi
 }
 
+function get_enabled_services() {
+  echo $( IFS=$' '; echo "${SERVICES[*]}" )
+}
+
 function start() {
   _compile_docker_compose_file
   _run_startup_scripts
-  $DOCKER_COMPOSE_CMD up -d --build --force-recreate --remove-orphans
+  $DOCKER_COMPOSE_CMD up -d --build --force-recreate --remove-orphans $(get_enabled_services)
 }
 
 function stop() {

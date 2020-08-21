@@ -25,7 +25,9 @@ services:
   varnish:
     image: cooptilleuls/varnish:${VARNISH_VERSION}-alpine
     restart: always
-    volumes: 
+    expose:
+      - 6081
+    volumes:
       - ./components/varnish/default.vcl:/usr/local/etc/varnish/default.vcl
     depends_on:
       - httpd
