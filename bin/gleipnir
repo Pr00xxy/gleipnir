@@ -129,9 +129,10 @@ function start() {
 }
 
 function stop() {
-  if [ $(_isRunning) ]; then
+  if [ $(_is_running) ]; then
     _run_shutdown_scripts
     $DOCKER_COMPOSE_CMD down
+    docker network rm ${PROJECT_NAME}_NETWORK
   fi
 }
 
@@ -139,7 +140,7 @@ function remove() {
     $DOCKER_COMPOSE_CMD rm
 }
 
-function _isRunning() {
+function _is_running() {
   dockerStatusOutput=$($DOCKER_COMPOSE_CMD ps -q)
   outputSize=${#dockerStatusOutput}
   if [ "$outputSize" -gt 0 ]; then
@@ -150,7 +151,7 @@ function _isRunning() {
 }
 
 function status() {
-  if [ ! $(_isRunning) ]; then
+  if [ ! $(_is_running) ]; then
     echo >&2 "Not running";
     exit 1;
   fi
@@ -251,7 +252,7 @@ case "$1" in
       _execRedis $*
       ;; 
     *)
-      if [ ! $(_isRunning) ]; then
+      if [ ! $(_is_running) ]; then
         echo >&2 "Docker is not running. Please start the containers first.";
         exit 1;
       fi
