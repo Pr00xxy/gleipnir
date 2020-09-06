@@ -5,7 +5,6 @@ ENV DEBIAN_FRONTEND noninteractive
 
 RUN apt-get update
 
-# php module build deps
 RUN \
   apt-get install -y \
   libcurl4-gnutls-dev \
@@ -42,7 +41,6 @@ RUN \
   libmagickwand-dev \
   --no-install-recommends
 
-# http://devdocs.magento.com/guides/v2.0/install-gde/system-requirements.html
 RUN \
     /usr/local/bin/docker-php-ext-install \
     pdo \
@@ -67,10 +65,8 @@ RUN \
 RUN pecl install imagick && docker-php-ext-enable imagick
 RUN pecl install xdebug && docker-php-ext-enable xdebug
 
-# Make sure the volume mount point is empty
 RUN rm -rf /var/www/html/*
 
-# Set www-data as owner for /var/www
 RUN chown -R www-data:www-data /var/www/
 RUN chmod -R g+w /var/www/
 
