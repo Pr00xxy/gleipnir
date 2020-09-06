@@ -8,6 +8,6 @@ for config in ${MULTISITE[@]} ; do
 
     echo "Remove proxy vhost for $domain"
 
-    rm $COMPONENTS_PATH/proxy/sites/${domain}.conf
-
 done
+
+rm $COMPONENTS_PATH/proxy/sites/*.conf

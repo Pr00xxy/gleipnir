@@ -8,6 +8,6 @@ for config in ${MULTISITE[@]} ; do
 
     echo "Remove httpd vhost for $domain"
 
-    rm $COMPONENTS_PATH/httpd/sites/${domain}.conf
-
 done
+
+rm $COMPONENTS_PATH/httpd/sites/*.conf
