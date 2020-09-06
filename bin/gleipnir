@@ -47,23 +47,50 @@ export PROJECTPATH=$PROJECTPATH
 export COMPOSE_PROJECT_NAME=${PROJECT_NAME}
 export HOST_IP=$(ip route | grep docker0 | awk '{print $9}')
 
-sleep 1
-
 hash docker 2>/dev/null || { echo >&2 "$SCRIPTNAME requires \"docker\""; exit 1; }
 
 hash docker-compose 2>/dev/null || { echo >&2 "$SCRIPTNAME requires \"docker-compose\""; exit 1; }
 
 function usage() {
-  echo -e "Usage:\n\n  $SCRIPTNAME <action> <arguments...> \n"
-  echo -e "Actions:\n"
-  printf "  %-15s%-30s%-30s\n" "php" "Execute php inside the docker container"
-  printf "  %+20s\n" "xdebug <on|off>"
-  echo ""
-  printf "  %-15s%-30s%-30s\n" "start" "Start the server and all of its components"
-  printf "  %-15s%-30s%-30s\n" "restart" "restart <service>" "Restarts all or specific services"
-  printf "  %-15s%-30s%-30s\n" "stop" "Stop the server"
-  printf "  %-15s%-30s%-30s\n" "status" "Get the current server status"
-  printf "  %-15s%-30s%-30s\n" "importdb" "importdb <file>" "Import database file"
+  cat << EOF
+  Usage:
+  
+  $SCRIPTNAME <action>
+
+  If none of the following actions match the provided command, it will be interpreted as a bin/magento <action> invokation
+  
+  Actions:
+  
+  php             
+          Execute php inside the docker container
+      
+      xdebug <on|off> Toggle xdebug
+  
+  redis <command>
+          Executes a redis-cli command in the redis container
+
+  start           
+          Start the server and all of its components
+
+  stop            
+          Stop the server
+
+  restart <service>       
+          Restarts all or specific services
+
+  rm
+          Executes docker-composer rm
+
+  status          
+          Get the current server status
+
+  importdb <file> 
+          Imports target file to database
+
+  exportdb <file> 
+          Export database to target file
+
+EOF
 }
 
 function _run_startup_scripts() {
@@ -179,6 +206,10 @@ function _execPhp() {
 }
 
 case "$1" in
+    help)
+      usage
+      ;;
+
     start)
       start
       ;;
