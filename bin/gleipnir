@@ -185,6 +185,10 @@ function _execRedis() {
   $DOCKER_COMPOSE_CMD exec redis bash -c "redis-cli $1"
 }
 
+function _execBlackfire() {
+  $DOCKER_COMPOSE_CMD exec blackfire blackfire $1
+}
+
 function _execPhp() {
   case "$1" in
     xdebug)
@@ -245,6 +249,11 @@ case "$1" in
     php)
       shift 1
       _execPhp $*
+      ;;
+  
+    blackfire)
+      shift 1
+      _execBlackfire $*
       ;;
 
     redis)

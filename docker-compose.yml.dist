@@ -31,6 +31,12 @@ services:
       - ./components/varnish/default.vcl:/usr/local/etc/varnish/default.vcl
     depends_on:
       - httpd
+      
+  blackfire:
+    image: blackfire/blackfire
+    ports: ["8787"]
+    env_file:
+      - ./config/.env.blackfire
 
   php:
     build:
