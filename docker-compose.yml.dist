@@ -20,7 +20,7 @@ services:
       - ./components/httpd/m2.conf:/etc/nginx/m2.conf
       - ./components/httpd/nginx.conf:/etc/nginx/nginx.conf
       - ./components/httpd/sites:/etc/nginx/sites-available
-      - ${PROJECTPATH}:/var/www/html
+      - ${PROJECTPATH}/pub:/var/www/html/pub
 
   varnish:
     image: cooptilleuls/varnish:${VARNISH_VERSION}-alpine
