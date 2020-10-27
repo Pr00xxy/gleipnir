@@ -63,7 +63,7 @@ services:
       - ./components/mysql/conf.d:/etc/mysql/conf.d
 
   redis:
-    image: redis:latest
+    image: redis:${REDIS_VERSION}-alpine
     volumes:
       - redis-persistance:/data
 
@@ -93,16 +93,6 @@ services:
     ports: 
       - ${MAILHOG_SMTP_PORT}:1025
       - ${MAILHOG_WEB_PORT}:8025
-
-  mongodb:
-    image: mongo:${MONGODB_VERSION}
-    restart: always
-    env_file:
-      - ./config/.env.mongodb
-    volumes:
-      - ./components/mongodb/mongod.conf:/etc/mongod.conf
-      - ./components/mongodb/mongodb.conf:/etc/mongodb.conf
-      - mongo-persistance:/var/lib/mongodb
 
 volumes:
     db-persistance:
