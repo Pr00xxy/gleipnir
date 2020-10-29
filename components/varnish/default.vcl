@@ -11,7 +11,7 @@ backend default {
     .probe = {
         .url = "/health_check.php";
         .timeout = 2s;
-        .interval = 5s;
+        .interval = 30s;
         .window = 10;
         .threshold = 5;
    }
