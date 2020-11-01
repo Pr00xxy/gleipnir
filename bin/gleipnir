@@ -11,13 +11,27 @@ CONFIG_PATH="$GLEIPNIR_PATH/config"
 OVERRIDE_CONFIG_PATH="$PROJECTPATH/.gleipnir/config"
 ENV_FILE=".env.gleipnir"
 COMPOSE_FILE="$GLEIPNIR_PATH/docker-compose.yml"
+COMPOSE_OVERRIDE_FILE="$OVERRIDE_CONFIG_PATH/docker-compose.override.yml"
 DOCKER_COMPOSE_CMD="docker-compose -f $COMPOSE_FILE"
 ETC_HOSTS=/etc/hosts
 IP="127.0.0.1"
 
+function _docker_compose() {
+  if [ -f $COMPOSE_OVERRIDE_FILE ]; then
+    docker-compose -f $COMPOSE_FILE -f $COMPOSE_OVERRIDE_FILE $*
+  else
+    docker-compose -f $COMPOSE_FILE $*
+  fi
+}
+
 function _compile_docker_compose_file() {
   echo >&1 "Compiling..."
-  envsubst < $GLEIPNIR_PATH/docker-compose.yml.dist > $COMPOSE_FILE
+  envsubst < $COMPOSE_FILE.dist > $COMPOSE_FILE
+
+  if [ -f $COMPOSE_OVERRIDE_FILE ]; then
+    envsubst < $COMPOSE_OVERRIDE_FILE.dist > $COMPOSE_OVERRIDE_FILE
+  fi
+
   echo >&1 "Done"
 }
 
@@ -125,23 +139,23 @@ function get_enabled_services() {
 function start() {
   _compile_docker_compose_file
   _run_startup_scripts
-  $DOCKER_COMPOSE_CMD up -d --build --force-recreate --remove-orphans $(get_enabled_services)
+  _docker_compose up -d --build --force-recreate --remove-orphans $(get_enabled_services)
 }
 
 function stop() {
   if [ $(_is_running) ]; then
     _run_shutdown_scripts
-    $DOCKER_COMPOSE_CMD down
+    _docker_compose down
     docker network rm ${PROJECT_NAME}_NETWORK
   fi
 }
 
 function remove() {
-    $DOCKER_COMPOSE_CMD rm
+    _docker_compose rm
 }
 
 function _is_running() {
-  dockerStatusOutput=$($DOCKER_COMPOSE_CMD ps -q)
+  dockerStatusOutput=$(_docker_compose ps -q)
   outputSize=${#dockerStatusOutput}
   if [ "$outputSize" -gt 0 ]; then
     echo true
@@ -155,7 +169,7 @@ function status() {
     echo >&2 "Not running";
     exit 1;
   fi
-  $DOCKER_COMPOSE_CMD ps -q | xargs docker inspect --format='{{ .Name }} {{ .State.Status }}' | sed 's:^/::g' | xargs printf "%-45s%-30s\n"
+  _docker_compose ps -q | xargs docker inspect --format='{{ .Name }} {{ .State.Status }}' | sed 's:^/::g' | xargs printf "%-45s%-30s\n"
 }
 
 function restart() {
@@ -165,24 +179,24 @@ function restart() {
   else
     _run_shutdown_scripts $1
     _run_startup_scripts $1
-    $DOCKER_COMPOSE_CMD restart $1
+    _docker_compose restart $1
   fi
 }
 
 function importDb()
 {
   _load_config .env.mysql
-  $DOCKER_COMPOSE_CMD exec -T database mysql -uroot -p${MYSQL_ROOT_PASSWORD} ${MYSQL_DATABASE} < $1
+  _docker_compose exec -T database mysql -uroot -p${MYSQL_ROOT_PASSWORD} ${MYSQL_DATABASE} < $1
 }
 
 function exportDb()
 {
   _load_config .env.mysql
-  docker-compose -f $COMPOSE_FILE exec -T database mysqldump -uroot -p${MYSQL_ROOT_PASSWORD} ${MYSQL_DATABASE} > $1
+  _docker_compose exec -T database mysqldump -uroot -p${MYSQL_ROOT_PASSWORD} ${MYSQL_DATABASE} > $1
 }
 
 function _execRedis() {
-  $DOCKER_COMPOSE_CMD exec redis bash -c "redis-cli $1"
+  _docker_compose exec redis bash -c "redis-cli $1"
 }
 
 function _execPhp() {
@@ -256,7 +270,7 @@ case "$1" in
         echo >&2 "Docker is not running. Please start the containers first.";
         exit 1;
       fi
-      $DOCKER_COMPOSE_CMD exec php bash -c "bin/magento $*"
+      _docker_compose exec php bash -c "bin/magento $*"
 esac
 
 exit 0
