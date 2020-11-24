@@ -196,7 +196,7 @@ function exportDb()
 }
 
 function _execRedis() {
-  _docker_compose exec redis bash -c "redis-cli $1"
+  _docker_compose exec redis sh -c "redis-cli $1"
 }
 
 function _execPhp() {
