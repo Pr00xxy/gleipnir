@@ -16,7 +16,8 @@ DOCKER_COMPOSE_CMD="docker-compose -f $COMPOSE_FILE"
 ETC_HOSTS=/etc/hosts
 IP="127.0.0.1"
 
-function _docker_compose() {
+function _docker_compose() 
+{
   if [ -f $COMPOSE_OVERRIDE_FILE ]; then
     docker-compose -f $COMPOSE_FILE -f $COMPOSE_OVERRIDE_FILE "$@"
   else
@@ -24,7 +25,8 @@ function _docker_compose() {
   fi
 }
 
-function _compile_docker_compose_file() {
+function _compile_docker_compose_file() 
+{
   echo >&1 "Compiling..."
   envsubst < $COMPOSE_FILE.dist > $COMPOSE_FILE
 
@@ -65,7 +67,8 @@ hash docker 2>/dev/null || { echo >&2 "$SCRIPTNAME requires \"docker\""; exit 1;
 
 hash docker-compose 2>/dev/null || { echo >&2 "$SCRIPTNAME requires \"docker-compose\""; exit 1; }
 
-function usage() {
+function usage() 
+{
   cat << EOF
   Usage:
   
@@ -78,7 +81,8 @@ function usage() {
   php             
           Execute php inside the docker container
       
-      xdebug <on|off> Toggle xdebug
+      xdebug   <on|off> Toggle xdebug
+      profiler <on|off> Toggle profiler
   
   redis <command>
           Executes a redis-cli command in the redis container
@@ -107,15 +111,18 @@ function usage() {
 EOF
 }
 
-function _run_startup_scripts() {
+function _run_startup_scripts() 
+{
   _run_script "startup" $1
 }
 
-function _run_shutdown_scripts() {
+function _run_shutdown_scripts() 
+{
   _run_script "shutdown" $1
 }
 
-function _run_script() {
+function _run_script() 
+{
     if [ $# -eq 2 ]; then
       if [ -f COMPONENTS_PATH/$2/$1.sh ]; then
         echo "Running $1.sh for $2"
@@ -132,17 +139,20 @@ function _run_script() {
     fi
 }
 
-function get_enabled_services() {
+function get_enabled_services() 
+{
   echo $( IFS=$' '; echo "${SERVICES[*]}" )
 }
 
-function start() {
+function start() 
+{
   _compile_docker_compose_file
   _run_startup_scripts
   _docker_compose up -d --build --force-recreate --remove-orphans $(get_enabled_services)
 }
 
-function stop() {
+function stop() 
+{
   if [ $(_is_running) ]; then
     _run_shutdown_scripts
     _docker_compose down
@@ -150,11 +160,13 @@ function stop() {
   fi
 }
 
-function remove() {
+function remove() 
+{
     _docker_compose rm
 }
 
-function _is_running() {
+function _is_running() 
+{
   dockerStatusOutput=$(_docker_compose ps -q)
   outputSize=${#dockerStatusOutput}
   if [ "$outputSize" -gt 0 ]; then
@@ -164,7 +176,8 @@ function _is_running() {
   fi
 }
 
-function status() {
+function status() 
+{
   if [ ! $(_is_running) ]; then
     echo >&2 "Not running";
     exit 1;
@@ -172,7 +185,8 @@ function status() {
   _docker_compose ps -q | xargs docker inspect --format='{{ .Name }} {{ .State.Status }}' | sed 's:^/::g' | xargs printf "%-45s%-30s\n"
 }
 
-function restart() {
+function restart() 
+{
   if [[ -z "$1" ]]; then
     stop
     start
@@ -195,11 +209,13 @@ function exportDb()
   _docker_compose exec -T database mysqldump -uroot -p${MYSQL_ROOT_PASSWORD} ${MYSQL_DATABASE} > $1
 }
 
-function _execRedis() {
+function _execRedis() 
+{
   _docker_compose exec redis sh -c "redis-cli $1"
 }
 
-function _execPhp() {
+function _execPhp() 
+{
   case "$1" in
     xdebug)
       case "$2" in
@@ -213,7 +229,21 @@ function _execPhp() {
           restart php
           exit 0
           ;;
-
+      esac
+      usage
+      ;;
+    profiler)
+      case "$2" in
+        "on")
+          source $COMPONENTS_PATH/php/enable_profiler.sh
+          restart php
+          exit 0
+          ;;
+        "off")
+          source $COMPONENTS_PATH/php/disable_profiler.sh
+          restart php
+          exit 0
+          ;;
       esac
       usage
       ;;
