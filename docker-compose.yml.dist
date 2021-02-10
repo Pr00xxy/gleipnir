@@ -60,7 +60,7 @@ services:
       - "${DB_LISTEN_PORT}"
     volumes:
       - db-persistance:/var/lib/mysql
-      - ./components/mysql/conf.d:/etc/mysql/conf.d
+      - ./components/mysql/${MYSQL_VERSION}/conf.d:/etc/mysql/conf.d
 
   redis:
     image: redis:${REDIS_VERSION}-alpine
