@@ -44,7 +44,7 @@ RUN \
   curl
 
 RUN pecl install imagick && docker-php-ext-enable imagick
-RUN pecl install xdebug && docker-php-ext-enable xdebug
+RUN pecl install xdebug-2.9.0 && docker-php-ext-enable xdebug
 
 RUN rm -rf /var/www/html/*
 
