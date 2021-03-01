@@ -18,32 +18,22 @@ RUN apk add --virtual .deps --update --no-cache \
   imagemagick-dev \
   libpng-dev \
   libxml2-dev \
-  libzip-dev \ 
+  libzip-dev \
   libxslt-dev \
   shadow \
   zlib-dev \
-  oniguruma-dev
-
-# http://devdocs.magento.com/guides/v2.0/install-gde/system-requirements.html
-RUN \
-    /usr/local/bin/docker-php-ext-install \
-    pdo \
-    sockets \
-    pdo_mysql \
-    mysqli \
-    mbstring \
-    hash \
-    simplexml \
-    xsl \
-    soap \
-    intl \
-    bcmath \
-    json \
-    opcache \
-    dom \
-    pcntl \
-    zip \
-    curl
+  oniguruma-dev \
+  &&  /usr/local/bin/docker-php-ext-install \
+  sockets \
+  pdo_mysql \
+  mysqli \
+  xsl \
+  soap \
+  intl \
+  bcmath \
+  opcache \
+  pcntl \
+  zip
 
 RUN pecl install imagick && docker-php-ext-enable imagick
 RUN pecl install xdebug-2.9.0 && docker-php-ext-enable xdebug
@@ -56,7 +46,6 @@ RUN chown -R www-data:www-data /var/www/
 RUN chmod -R g+w /var/www/
 
 RUN docker-php-ext-configure gd \
-    --with-freetype-dir=/usr \
-    --with-jpeg-dir=/usr \
-    --with-png-dir=/usr \
-    && docker-php-ext-install gd
+  --with-freetype \
+  --with-jpeg \
+  && docker-php-ext-install gd
