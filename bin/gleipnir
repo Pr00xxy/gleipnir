@@ -10,10 +10,11 @@ BOOT_SCRIPT_PATH="${COMPONENTS_PATH}/*"
 CONFIG_PATH="$GLEIPNIR_PATH/config"
 OVERRIDE_CONFIG_PATH="$PROJECTPATH/.gleipnir/config"
 ENV_FILE=".env.gleipnir"
-COMPOSE_FILE="$GLEIPNIR_PATH/docker-compose.yml"
+COMPOSE_FILE="$OVERRIDE_CONFIG_PATH/docker-compose.yml"
 COMPOSE_OVERRIDE_FILE="$OVERRIDE_CONFIG_PATH/docker-compose.override.yml"
 DOCKER_COMPOSE_CMD="docker-compose -f $COMPOSE_FILE"
 ETC_HOSTS=/etc/hosts
+VAR_PATH="$OVERRIDE_CONFIG_PATH/var"
 IP="127.0.0.1"
 
 function _docker_compose() 
@@ -28,7 +29,7 @@ function _docker_compose()
 function _compile_docker_compose_file() 
 {
   echo >&1 "Compiling..."
-  envsubst < $COMPOSE_FILE.dist > $COMPOSE_FILE
+  envsubst < $GLEIPNIR_PATH/docker-compose.yml.dist > $COMPOSE_FILE
 
   if [ -f $COMPOSE_OVERRIDE_FILE ]; then
     envsubst < $COMPOSE_OVERRIDE_FILE.dist > $COMPOSE_OVERRIDE_FILE
@@ -59,6 +60,7 @@ set -a
 
 _load_config $ENV_FILE
 
+export GLEIPNIR_PATH
 export PROJECTPATH=$PROJECTPATH
 export COMPOSE_PROJECT_NAME=${PROJECT_NAME}
 export HOST_IP=$(ip route | grep docker0 | awk '{print $9}')
@@ -75,14 +77,12 @@ function usage()
   $SCRIPTNAME <action>
 
   If none of the following actions match the provided command, it will be interpreted as a bin/magento <action> invokation
-  
+
   Actions:
-  
-  php             
-          Execute php inside the docker container
-      
-      xdebug   <on|off> Toggle xdebug
-      profiler <on|off> Toggle profiler
+
+  xdebug   <on|off> Toggle PHP xdebug
+
+  profiler <on|off> Toggle PHP profiler
   
   redis <command>
           Executes a redis-cli command in the redis container
@@ -214,42 +214,6 @@ function _execRedis()
   _docker_compose exec redis sh -c "redis-cli $1"
 }
 
-function _execPhp() 
-{
-  case "$1" in
-    xdebug)
-      case "$2" in
-        "on")
-          source $COMPONENTS_PATH/php/enable_xdebug.sh
-          restart php
-          exit 0
-          ;;
-        "off")
-          source $COMPONENTS_PATH/php/disable_xdebug.sh
-          restart php
-          exit 0
-          ;;
-      esac
-      usage
-      ;;
-    profiler)
-      case "$2" in
-        "on")
-          source $COMPONENTS_PATH/php/enable_profiler.sh
-          restart php
-          exit 0
-          ;;
-        "off")
-          source $COMPONENTS_PATH/php/disable_profiler.sh
-          restart php
-          exit 0
-          ;;
-      esac
-      usage
-      ;;
-  esac
-}
-
 case "$1" in
     help)
       usage
@@ -286,9 +250,36 @@ case "$1" in
       exportDb $*
       ;;
 
-    php)
-      shift 1
-      _execPhp $*
+    xdebug)
+      case "$2" in
+        "on")
+          source $COMPONENTS_PATH/php/enable_xdebug.sh
+          restart php
+          exit 0
+          ;;
+        "off")
+          source $COMPONENTS_PATH/php/disable_xdebug.sh
+          restart php
+          exit 0
+          ;;
+      esac
+      usage
+      ;;
+
+    profiler)
+      case "$2" in
+        "on")
+          source $COMPONENTS_PATH/php/enable_profiler.sh
+          restart php
+          exit 0
+          ;;
+        "off")
+          source $COMPONENTS_PATH/php/disable_profiler.sh
+          restart php
+          exit 0
+          ;;
+      esac
+      usage
       ;;
 
     redis)

@@ -8,7 +8,7 @@ for config in ${MULTISITE[@]} ; do
 
     echo "Remove certificates for $domain"
 
-    rm $COMPONENTS_PATH/ssl/certificates/${domain}.key
-    rm $COMPONENTS_PATH/ssl/certificates/${domain}.crt
+    rm $VAR_PATH/ssl/certificates/${domain}.key
+    rm $VAR_PATH/ssl/certificates/${domain}.crt
 
 done

@@ -7,19 +7,19 @@ services:
     ports:
       - "${PROXY_LISTEN_PORT}:443"
     volumes:
-      - ./components/proxy/nginx.conf:/etc/nginx/nginx.conf
-      - ./components/proxy/sites:/etc/nginx/sites-available
-      - ./components/ssl/certificates:/etc/nginx/certificates
+      -  ${GLEIPNIR_PATH}/components/proxy/nginx.conf:/etc/nginx/nginx.conf
+      -  ./var/proxy/sites:/etc/nginx/sites-available
+      -  ./var/ssl/certificates:/etc/nginx/certificates
     depends_on:
       - varnish
 
   httpd:
     image: nginx:latest
     volumes:
-      - ./components/httpd/upstream.conf:/etc/nginx/upstream.conf
-      - ./components/httpd/m2.conf:/etc/nginx/m2.conf
-      - ./components/httpd/nginx.conf:/etc/nginx/nginx.conf
-      - ./components/httpd/sites:/etc/nginx/sites-available
+      - ${GLEIPNIR_PATH}/components/httpd/upstream.conf:/etc/nginx/upstream.conf
+      - ${GLEIPNIR_PATH}/components/httpd/m2.conf:/etc/nginx/m2.conf
+      - ${GLEIPNIR_PATH}/components/httpd/nginx.conf:/etc/nginx/nginx.conf
+      - ./var/httpd/sites:/etc/nginx/sites-available
       - ${PROJECTPATH}/pub:/var/www/html/pub
 
   varnish:
@@ -28,24 +28,24 @@ services:
     expose:
       - 6081
     volumes:
-      - ./components/varnish/default.vcl:/usr/local/etc/varnish/default.vcl
+      - ${GLEIPNIR_PATH}/components/varnish/default.vcl:/usr/local/etc/varnish/default.vcl
     depends_on:
       - httpd
 
   php:
     build:
-      context: ./components/php/${PHP_VERSION}
+      context: ${GLEIPNIR_PATH}/components/php/${PHP_VERSION}
       dockerfile: Dockerfile
     ports:
       - "9000"
       - "9001"
     user: "${USER}"
     env_file:
-      - ./config/.env.php
+      - ${GLEIPNIR_PATH}/config/.env.php
     volumes:
-      - ./components/php/${PHP_VERSION}/conf/php.ini:/usr/local/etc/php/php.ini
-      - ./components/php/${PHP_VERSION}/conf/php-fpm.conf:/usr/local/etc/php-fpm.conf
-      - ./components/php/${PHP_VERSION}/conf/www.conf:/usr/local/etc/www.conf
+      - ${GLEIPNIR_PATH}/components/php/${PHP_VERSION}/conf/php.ini:/usr/local/etc/php/php.ini
+      - ${GLEIPNIR_PATH}/components/php/${PHP_VERSION}/conf/php-fpm.conf:/usr/local/etc/php-fpm.conf
+      - ${GLEIPNIR_PATH}/components/php/${PHP_VERSION}/conf/www.conf:/usr/local/etc/www.conf
       - ${PROJECTPATH}:/var/www/html
     extra_hosts:
       host.docker.internal: $HOST_IP
@@ -55,23 +55,21 @@ services:
     ports:
       - "${DB_LISTEN_PORT}:${DB_LISTEN_PORT}"
     env_file:
-      - ./config/.env.mysql
+      - ${GLEIPNIR_PATH}/config/.env.mysql
     expose:
       - "${DB_LISTEN_PORT}"
     volumes:
       - db-persistance:/var/lib/mysql
-      - ./components/mysql/${MYSQL_VERSION}/conf.d:/etc/mysql/conf.d
+      - ${GLEIPNIR_PATH}/components/mysql/${MYSQL_VERSION}/conf.d:/etc/mysql/conf.d
 
   redis:
     image: redis:${REDIS_VERSION}-alpine
-    volumes:
-      - redis-persistance:/data
 
   rabbitmq:
     image: rabbitmq:${RABBITMQ_VERSION}-management-alpine
     hostname: ${PROJECT_NAME}-rabbitmq
     env_file:
-      - ./config/.env.rabbitmq
+      - ${GLEIPNIR_PATH}/config/.env.rabbitmq
     volumes:
       - rabbitmq-persistance:/var/lib/rabbitmq
 
@@ -101,8 +99,6 @@ volumes:
       name: ${PROJECT_NAME}-es-data
     rabbitmq-persistance:
       name: ${PROJECT_NAME}-rabbit-data
-    redis-persistance:
-      name: ${PROJECT_NAME}-redis-data
     mongo-persistance:
       name: ${PROJECT_NAME}-mongo-data
 

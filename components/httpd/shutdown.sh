@@ -10,4 +10,4 @@ for config in ${MULTISITE[@]} ; do
 
 done
 
-rm $COMPONENTS_PATH/httpd/sites/*.conf
+rm $VAR_PATH/httpd/sites/*.conf

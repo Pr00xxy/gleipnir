@@ -2,7 +2,14 @@
 
 function assemble_site_configuration() {
     echo "Creating httpd vhost for $1"
-    envsubst < $COMPONENTS_PATH/httpd/domain.conf.dist > $COMPONENTS_PATH/httpd/sites/${1}.conf
+
+    path=$VAR_PATH/httpd/sites/
+
+    if [ ! -d $path ]; then
+        mkdir -p $path/
+    fi
+
+    envsubst < $COMPONENTS_PATH/httpd/domain.conf.dist > $path/${1}.conf
 }
 
 for config in ${MULTISITE[@]} ; do
@@ -15,8 +22,8 @@ for config in ${MULTISITE[@]} ; do
 
     assemble_site_configuration $domain
 
-    sed -i "s:NEEDLE_DOMAIN:$domain:g" $COMPONENTS_PATH/httpd/sites/$domain.conf
-    sed -i "s:NEEDLE_CODE:$code:g" $COMPONENTS_PATH/httpd/sites/$domain.conf
-    sed -i "s:NEEDLE_SCOPE:$scope:g" $COMPONENTS_PATH/httpd/sites/$domain.conf
+    sed -i "s:NEEDLE_DOMAIN:$domain:g" $VAR_PATH/httpd/sites/$domain.conf
+    sed -i "s:NEEDLE_CODE:$code:g" $VAR_PATH/httpd/sites/$domain.conf
+    sed -i "s:NEEDLE_SCOPE:$scope:g" $VAR_PATH/httpd/sites/$domain.conf
 
 done

@@ -10,4 +10,4 @@ for config in ${MULTISITE[@]} ; do
 
 done
 
-rm $COMPONENTS_PATH/proxy/sites/*.conf
+rm $VAR_PATH/proxy/sites/*.conf
