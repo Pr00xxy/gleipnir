@@ -42,7 +42,6 @@ function _load_config()
 {
   source $CONFIG_PATH/$1
   if [ -f $OVERRIDE_CONFIG_PATH/$1 ]; then
-    echo "Found override configuration at $1"
     source $OVERRIDE_CONFIG_PATH/$1
   fi
 }
@@ -96,8 +95,8 @@ function usage()
   restart <service>       
           Restarts all or specific services
 
-  rm
-          Executes docker-composer rm
+  uninstall
+          Removes installtion and prunes all data
 
   status          
           Get the current server status
@@ -160,7 +159,7 @@ function stop()
   fi
 }
 
-function remove() 
+function uninstall() 
 {
     _docker_compose rm
 }
@@ -236,8 +235,8 @@ case "$1" in
       status
       ;;
 
-    remove)
-      remove
+    uninstall)
+      uninstall
       ;;
 
     importdb)
