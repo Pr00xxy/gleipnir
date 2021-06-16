@@ -64,6 +64,8 @@ services:
 
   redis:
     image: redis:${REDIS_VERSION}-alpine
+    volumes:
+      - redis-persistance:/data
 
   rabbitmq:
     image: rabbitmq:${RABBITMQ_VERSION}-management-alpine
@@ -95,6 +97,8 @@ services:
 volumes:
     db-persistance:
       name: ${PROJECT_NAME}-db-data
+    redis-persistance:
+      name: ${PROJECT_NAME}-redis-data
     es-persistance:
       name: ${PROJECT_NAME}-es-data
     rabbitmq-persistance:
