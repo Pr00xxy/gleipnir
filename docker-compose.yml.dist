@@ -8,6 +8,7 @@ services:
       - "${PROXY_LISTEN_PORT}:443"
     volumes:
       -  ${GLEIPNIR_PATH}/components/proxy/nginx.conf:/etc/nginx/nginx.conf
+      -  ${PROJECTPATH}:/var/www/html
       -  ./var/proxy/sites:/etc/nginx/sites-available
       -  ./var/ssl/certificates:/etc/nginx/certificates
     depends_on:
@@ -20,7 +21,7 @@ services:
       - ${GLEIPNIR_PATH}/components/httpd/m2.conf:/etc/nginx/m2.conf
       - ${GLEIPNIR_PATH}/components/httpd/nginx.conf:/etc/nginx/nginx.conf
       - ./var/httpd/sites:/etc/nginx/sites-available
-      - ${PROJECTPATH}/pub:/var/www/html/pub
+      - ${PROJECTPATH}:/var/www/html
 
   varnish:
     image: cooptilleuls/varnish:${VARNISH_VERSION}-alpine
