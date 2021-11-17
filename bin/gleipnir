@@ -17,7 +17,7 @@ ETC_HOSTS=/etc/hosts
 VAR_PATH="$OVERRIDE_CONFIG_PATH/var"
 IP="127.0.0.1"
 
-function _docker_compose() 
+function _docker_compose()
 {
   if [ -f $COMPOSE_OVERRIDE_FILE ]; then
     docker-compose -f $COMPOSE_FILE -f $COMPOSE_OVERRIDE_FILE "$@"
@@ -26,7 +26,7 @@ function _docker_compose()
   fi
 }
 
-function _compile_docker_compose_file() 
+function _compile_docker_compose_file()
 {
   echo >&1 "Compiling..."
   envsubst < $GLEIPNIR_PATH/docker-compose.yml.dist > $COMPOSE_FILE
@@ -68,11 +68,11 @@ hash docker 2>/dev/null || { echo >&2 "$SCRIPTNAME requires \"docker\""; exit 1;
 
 hash docker-compose 2>/dev/null || { echo >&2 "$SCRIPTNAME requires \"docker-compose\""; exit 1; }
 
-function usage() 
+function usage()
 {
   cat << EOF
   Usage:
-  
+
   $SCRIPTNAME <action>
 
   If none of the following actions match the provided command, it will be interpreted as a bin/magento <action> invokation
@@ -82,45 +82,45 @@ function usage()
   xdebug   <on|off> Toggle PHP xdebug
 
   profiler <on|off> Toggle PHP profiler
-  
+
   redis <command>
           Executes a redis-cli command in the redis container
 
-  start           
+  start
           Start the server and all of its components
 
-  stop            
+  stop
           Stop the server
 
-  restart <service>       
+  restart <service>
           Restarts all or specific services
 
   uninstall
           Removes installtion and prunes all data
 
-  status          
+  status
           Get the current server status
 
-  importdb <file> 
+  importdb <file>
           Imports target file to database
 
-  exportdb <file> 
+  exportdb <file>
           Export database to target file
 
 EOF
 }
 
-function _run_startup_scripts() 
+function _run_startup_scripts()
 {
   _run_script "startup" $1
 }
 
-function _run_shutdown_scripts() 
+function _run_shutdown_scripts()
 {
   _run_script "shutdown" $1
 }
 
-function _run_script() 
+function _run_script()
 {
     if [ $# -eq 2 ]; then
       if [ -f COMPONENTS_PATH/$2/$1.sh ]; then
@@ -138,19 +138,19 @@ function _run_script()
     fi
 }
 
-function get_enabled_services() 
+function get_enabled_services()
 {
   echo $( IFS=$' '; echo "${SERVICES[*]}" )
 }
 
-function start() 
+function start()
 {
   _compile_docker_compose_file
   _run_startup_scripts
   _docker_compose up -d --build --force-recreate --remove-orphans $(get_enabled_services)
 }
 
-function stop() 
+function stop()
 {
   if [ $(_is_running) ]; then
     _run_shutdown_scripts
@@ -159,12 +159,12 @@ function stop()
   fi
 }
 
-function uninstall() 
+function uninstall()
 {
     _docker_compose rm
 }
 
-function _is_running() 
+function _is_running()
 {
   dockerStatusOutput=$(_docker_compose ps -q)
   outputSize=${#dockerStatusOutput}
@@ -175,7 +175,7 @@ function _is_running()
   fi
 }
 
-function status() 
+function status()
 {
   if [ ! $(_is_running) ]; then
     echo >&2 "Not running";
@@ -184,7 +184,7 @@ function status()
   _docker_compose ps -q | xargs docker inspect --format='{{ .Name }} {{ .State.Status }}' | sed 's:^/::g' | xargs printf "%-45s%-30s\n"
 }
 
-function restart() 
+function restart()
 {
   if [[ -z "$1" ]]; then
     stop
@@ -208,9 +208,14 @@ function exportDb()
   _docker_compose exec -T database mysqldump -uroot -p${MYSQL_ROOT_PASSWORD} ${MYSQL_DATABASE} > $1
 }
 
-function _execRedis() 
+function _execRedis()
 {
   _docker_compose exec redis sh -c "redis-cli $1"
+}
+
+function _execPhp()
+{
+    _docker_compose exec php sh -c "$*"
 }
 
 case "$1" in
@@ -243,7 +248,7 @@ case "$1" in
       shift 1
       importDb $*
       ;;
-    
+
     exportdb)
       shift 1
       exportDb $*
@@ -281,10 +286,21 @@ case "$1" in
       usage
       ;;
 
+    php)
+      case "$2" in
+        "test")
+          _execPhp $PHPUNIT_CMD
+          exit 0
+          ;;
+      esac
+      usage
+      ;;
+
     redis)
       shift 1
       _execRedis $*
-      ;; 
+      ;;
+
     *)
       if [ ! $(_is_running) ]; then
         echo >&2 "Docker is not running. Please start the containers first.";
