@@ -8,6 +8,8 @@ services:
       - "${PROXY_LISTEN_PORT}:443"
     volumes:
       -  ${GLEIPNIR_PATH}/components/proxy/nginx.conf:/etc/nginx/nginx.conf
+      -  ${GLEIPNIR_PATH}/components/httpd/m2.conf:/etc/nginx/m2.conf
+      -  ${GLEIPNIR_PATH}/components/httpd/upstream.conf:/etc/nginx/upstream.conf
       -  ${PROJECTPATH}:/var/www/html
       -  ./var/proxy/sites:/etc/nginx/sites-available
       -  ./var/ssl/certificates:/etc/nginx/certificates
