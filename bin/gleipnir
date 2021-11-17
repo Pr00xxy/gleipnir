@@ -81,28 +81,31 @@ function usage()
 
   xdebug   <on|off> Toggle PHP xdebug
 
-  profiler <on|off> Toggle PHP profiler
+  profiler <on|off> Toggle PHP profiler      
+
+  php test
+          Runs phpunit test suite
 
   redis <command>
           Executes a redis-cli command in the redis container
 
   start
-          Start the server and all of its components
+          Start the environment and all of its components
 
   stop
-          Stop the server
+          Stop the environment
 
   restart <service>
           Restarts all or specific services
 
   uninstall
-          Removes installtion and prunes all data
+          Removes installation and purges all container volumes
 
   status
           Get the current server status
 
   importdb <file>
-          Imports target file to database
+          Imports target file to mysql
 
   exportdb <file>
           Export database to target file
