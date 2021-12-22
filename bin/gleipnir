@@ -8,7 +8,8 @@ GLEIPNIR_PATH="$PROJECTPATH/vendor/prooxxy/gleipnir"
 COMPONENTS_PATH="$GLEIPNIR_PATH/components"
 BOOT_SCRIPT_PATH="${COMPONENTS_PATH}/*"
 CONFIG_PATH="$GLEIPNIR_PATH/config"
-OVERRIDE_CONFIG_PATH="$PROJECTPATH/.gleipnir/config"
+DOTGLEIPNIR_PATH="$PROJECTPATH/.gleipnir"
+OVERRIDE_CONFIG_PATH="$DOTGLEIPNIR_PATH/config"
 ENV_FILE=".env.gleipnir"
 COMPOSE_FILE="$OVERRIDE_CONFIG_PATH/docker-compose.yml"
 COMPOSE_OVERRIDE_FILE="$OVERRIDE_CONFIG_PATH/docker-compose.override.yml"
@@ -31,7 +32,7 @@ function _compile_docker_compose_file()
   echo >&1 "Compiling..."
   envsubst < $GLEIPNIR_PATH/docker-compose.yml.dist > $COMPOSE_FILE
 
-  if [ -f $COMPOSE_OVERRIDE_FILE ]; then
+  if [ -f "$COMPOSE_OVERRIDE_FILE.dist" ]; then
     envsubst < $COMPOSE_OVERRIDE_FILE.dist > $COMPOSE_OVERRIDE_FILE
   fi
 
@@ -65,7 +66,6 @@ export COMPOSE_PROJECT_NAME=${PROJECT_NAME}
 export HOST_IP=$(ip route | grep docker0 | awk '{print $9}')
 
 hash docker 2>/dev/null || { echo >&2 "$SCRIPTNAME requires \"docker\""; exit 1; }
-
 hash docker-compose 2>/dev/null || { echo >&2 "$SCRIPTNAME requires \"docker-compose\""; exit 1; }
 
 function usage()
@@ -81,10 +81,16 @@ function usage()
 
   xdebug   <on|off> Toggle PHP xdebug
 
-  profiler <on|off> Toggle PHP profiler      
+  profiler <on|off> Toggle PHP profiler
+
+  shell <service>
+          Opens a shell into any of the services
 
   php test
           Runs phpunit test suite
+
+  98 <command>
+          Run n98magerun command
 
   redis <command>
           Executes a redis-cli command in the redis container
@@ -95,7 +101,7 @@ function usage()
   stop
           Stop the environment
 
-  restart <service>
+  restart <services>
           Restarts all or specific services
 
   uninstall
@@ -164,6 +170,7 @@ function stop()
 
 function uninstall()
 {
+    stop
     _docker_compose rm
 }
 
@@ -209,6 +216,15 @@ function exportDb()
 {
   _load_config .env.mysql
   _docker_compose exec -T database mysqldump -uroot -p${MYSQL_ROOT_PASSWORD} ${MYSQL_DATABASE} > $1
+}
+
+function _execN98()
+{
+  if [ ! -f $PROJECTPATH/n98-magerun2.phar ]; then
+    echo >&2 "N98-magerun2 file not found in project root."
+    echo >&2 "Please download the executable and place it in project root. Gleipnir does not provide a magerun file"
+  fi
+  _docker_compose exec php sh -c "./n98-magerun2.phar $*"
 }
 
 function _execRedis()
@@ -289,6 +305,11 @@ case "$1" in
       usage
       ;;
 
+    98)
+      shift 1
+      _execN98 $*
+    ;;
+
     php)
       case "$2" in
         "test")
@@ -302,6 +323,11 @@ case "$1" in
     redis)
       shift 1
       _execRedis $*
+      ;;
+
+    shell)
+      shift 1
+        _docker_compose exec $1 sh
       ;;
 
     *)
