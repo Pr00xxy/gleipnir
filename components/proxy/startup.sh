@@ -13,8 +13,20 @@ function assemble_proxy_site_configuration() {
         envsubst < $COMPONENTS_PATH/proxy/varnish.conf.dist > $VAR_PATH/proxy/sites/${1}.conf
     else
         envsubst < $COMPONENTS_PATH/proxy/httpd.conf.dist > $VAR_PATH/proxy/sites/${1}.conf
+
+        IFS=':' read -r -a array <<< "$config"
+
+        domain=${array[0]}
+        code=${array[1]}
+        scope=${array[2]}
+
+        assemble_site_configuration $domain
+
+        sed -i "s:NEEDLE_DOMAIN:$domain:g" $VAR_PATH/proxy/sites/${1}.conf
+        sed -i "s:NEEDLE_CODE:$code:g" $VAR_PATH/proxy/sites/${1}.conf
+        sed -i "s:NEEDLE_SCOPE:$scope:g" $VAR_PATH/proxy/sites/${1}.conf
+
     fi
-    
 }
 
 function append_proxy_certificate_instructions() {

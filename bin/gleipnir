@@ -48,7 +48,7 @@ function _load_config()
 }
 
 if [ ! -f $CONFIG_PATH/$ENV_FILE ]; then
-  echo >&2 "The file that holds the environment variables was not found at $ENV_FILE"
+  echo >&2 "The file that holds the environment variables was not found at $CONFIG_PATH/$ENV_FILE"
   exit 1
 fi
 
