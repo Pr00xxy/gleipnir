@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2021-12-23
+### Changed
+- Replaced run command in favour of new general purpose shell command
+- Remove leftover mongodb config
+- Proxy service now acts as httpd service when varnish is disabled
+
+### Fixed
+- Fix bug where additional compose files didnt work
+- Adjusted realpath caching ttl for php 8 to 5000 seconds
+- Adjusted memory limit for php 7.1 to 1G
 ## [1.2.0] - 2021-11-17
 ### Fixed
 - Fixed typo in profiler restart script
